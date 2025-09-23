@@ -10,8 +10,7 @@ export const CONFIG = {
         binance: 'https://api.binance.com/api/v3',
         coingecko: 'https://api.coingecko.com/api/v3',
         fearGreed: 'https://api.alternative.me/fng/',
-        recommendations: 'http://192.168.1.11:8000',
-        //recommendations: 'https://api.cryptodash-pro.com/recommendations' // API placeholder - será configurada posteriormente
+        recommendations: 'http://192.168.1.11:8000'
     },
     updateIntervals: {
         prices: 30000, // 30s

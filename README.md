@@ -2,107 +2,135 @@
 
 Dashboard profissional de criptomoedas com análise técnica avançada, gráficos interativos e recomendações de IA.
 
-## 🚀 Características
+## Description
 
-- **Dados em Tempo Real**: Monitoramento de Bitcoin, Ethereum, Solana, Cardano e Ripple
-- **Análise Técnica Avançada**: Gráficos interativos com TradingView Lightweight Charts
-- **Recomendações de IA**: Sistema inteligente de recomendações de trading
-- **Fear & Greed Index**: Indicador de sentimento do mercado
-- **Interface Responsiva**: Design moderno e adaptável para todos os dispositivos
-- **Perfis de Investimento**: Configurações personalizáveis (Conservative, Moderate, Aggressive)
+This project is a single-page application that provides a comprehensive overview of the cryptocurrency market. It fetches data from various APIs, including Binance, CoinGecko, and a custom recommendation engine, to display real-time information. The dashboard features a responsive and interactive interface with detailed charting capabilities.
 
-## 🛠️ Tecnologias
+## Features
 
-- **Frontend**: HTML5, CSS3, JavaScript (ES6 Modules)
-- **Gráficos**: TradingView Lightweight Charts
-- **Styling**: Tailwind CSS, Font Awesome
-- **APIs**: Binance, CoinGecko, Fear & Greed Index
+*   **Real-time Data:** Fetches and displays up-to-the-minute cryptocurrency prices and market data.
+*   **Multiple Cryptocurrencies:** Supports a configurable list of cryptocurrencies.
+*   **Global Market Overview:** Shows global market capitalization, trading volume, and Bitcoin dominance.
+*   **Fear & Greed Index:** Displays the current Fear & Greed Index to gauge market sentiment.
+*   **Trading Recommendations:** Integrates with a custom API to provide buy/sell/hold recommendations.
+*   **Interactive Charts:** Uses Lightweight Charts to display candlestick and volume data, with support for different timeframes.
+*   **Ruler Tool:** A tool to measure price changes and time duration directly on the chart. After measuring, it displays a draggable info box with detailed results, which can be closed to deactivate the tool.
+*   **Customizable Settings:** Allows users to configure the model, timeframe, and other parameters.
+*   **Responsive Design:** The interface is designed to work on different screen sizes.
 
-## 📱 Interface
+## Getting Started
 
-### Dashboard Principal
-- Visão geral do mercado global
-- Cards de criptomoedas com dados em tempo real
-- Indicadores de mercado (Market Cap, Volume, Dominância BTC)
+To run this project locally, you need a web server to serve the `index.html`, `script.js`, and `styles.css` files. You can use any simple web server, such as Python's `http.server` or the Live Server extension in Visual Studio Code.
 
-### Análise Individual
-- Gráficos de preço com múltiplos timeframes (1H, 4H, 1D, 1W)
-- Ferramenta de régua para medições
-- Recomendações de IA baseadas em análise técnica
+1.  Clone this repository or download the files.
+2.  Open the `index.html` file in your web browser through a web server.
 
-### Configurações
-- Seleção de modelo de previsão (CNN, LSTM, GRU)
-- Configuração de timeframes e intervalos de atualização
-- Perfis de recomendação personalizáveis
+## Usage
 
-## 🚀 Como Usar
+The dashboard is divided into two main views: the main dashboard and the detailed crypto view.
 
-1. Acesse o dashboard principal para ver a visão geral do mercado
-2. Clique em qualquer criptomoeda para análise detalhada
-3. Use os botões de timeframe para diferentes períodos de análise
-4. Configure suas preferências no menu de configurações
-5. Monitore as recomendações de IA para decisões de trading
+*   **Dashboard View:** This is the main view, which displays a list of cryptocurrencies in either a card or list format. It also shows the global market data and the Fear & Greed Index.
+*   **Crypto Detail View:** Clicking on a cryptocurrency in the dashboard will take you to the detail view. This view shows a detailed chart for the selected cryptocurrency, along with its current price, volume, and trading recommendations.
 
-## 📊 Funcionalidades Principais
+## Functions
 
-### Busca de Dados
-- `fetchCryptoData()`: Busca dados das principais criptomoedas
-- `fetchGlobalData()`: Obtém estatísticas globais do mercado
-- `fetchFearGreedIndex()`: Coleta índice de medo e ganância
-- `fetchRecommendations()`: Busca recomendações de IA
+### Data Fetching
 
-### Renderização
-- `renderCryptoCards()`: Exibe cards das criptomoedas
-- `renderChart()`: Cria gráficos interativos
-- `updateGlobalStats()`: Atualiza estatísticas globais
-- `updateFearGreedGauge()`: Atualiza medidor de sentimento
+*   `fetchData(url, cacheKey, cacheDuration)`: A generic function to fetch data from a URL with caching support.
+*   `fetchGlobalData()`: Fetches global market data from the CoinGecko API.
+*   `fetchFearGreedIndex()`: Fetches the Fear & Greed Index.
+*   `fetchCryptoData()`: Fetches data for all configured cryptocurrencies.
+*   `fetchRecommendation(crypto)`: Fetches the latest trading recommendation for a cryptocurrency.
+*   `fetchRecommendationHistory(crypto)`: Fetches the historical trading recommendations for a cryptocurrency.
+*   `fetchCandlestickData(crypto, interval, limit)`: Fetches candlestick data for a cryptocurrency.
+*   `fetchTargetStop(crypto, recommendation)`: Fetches target and stop-loss prices for a recommendation.
 
-## 🔧 Configuração Local
+### Rendering
 
-Para executar localmente:
+*   `renderCryptoCards(cryptoData)`: Renders the main dashboard view with cryptocurrency cards.
+*   `renderCryptoList(cryptoData)`: Renders the main dashboard view with a list of cryptocurrencies.
+*   `loadRecommendationForCard(crypto)`: Loads and displays the recommendation for a crypto card.
+*   `loadRecommendationForList(crypto)`: Loads and displays the recommendation for a crypto in the list view.
+*   `showPage(page)`: Switches between the main dashboard and the crypto detail view.
+*   `showCryptoDetail(cryptoId)`: Displays the detailed view for a specific cryptocurrency.
+*   `loadCryptoRecommendation(cryptoId)`: Loads and displays the recommendation for the detailed view.
 
-```bash
-# Clone o repositório
-git clone https://github.com/brunoodutra/cryptodash-pro.git
+### Charting
 
-# Entre no diretório
-cd cryptodash-pro
+*   `initializeLightweightChart()`: Initializes the Lightweight Chart.
+*   `loadLightweightChart(cryptoId)`: Loads the chart with data for a specific cryptocurrency.
+*   `updateLightweightChart()`: Updates the chart with new data.
+*   `createRecommendationMarkers(recommendationHistory, candlestickData)`: Creates markers on the chart for trading recommendations.
+*   `toggleRuler()`: Toggles the ruler tool on the chart.
+*   `handleChartClick(param)`: Handles clicks on the chart for the ruler functionality.
 
-# Inicie um servidor local
-python -m http.server 8080
-# ou
-npx serve .
+### Settings
 
-# Acesse http://localhost:8080
+*   `openSettings()`: Opens the settings modal.
+*   `closeSettings()`: Closes the settings modal.
+*   `loadSettingsValues()`: Loads the current settings into the modal.
+*   `saveSettings()`: Saves the settings from the modal.
+*   `resetSettings()`: Resets the settings to their default values.
+*   `loadSettingsFromStorage()`: Loads settings from local storage on startup.
+
+## Configuration Details
+
+The application can be configured by modifying the `CONFIG` object and the `state.settings` object in the `script.js` file.
+
+### Main Configuration (`CONFIG`)
+
+```javascript
+const CONFIG = {
+    cryptos: [
+        { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', binanceSymbol: 'BTCUSDT', color: '#f7931a' },
+        // ... other cryptos
+    ],
+    apis: {
+        binance: 'https://api.binance.com/api/v3',
+        coingecko: 'https://api.coingecko.com/api/v3',
+        fearGreed: 'https://api.alternative.me/fng/',
+        recommendations: 'http://192.168.1.11:8000'
+    },
+    updateIntervals: {
+        prices: 30000, // 30s
+        fearGreed: 300000, // 5min
+        global: 60000, //1 min
+        chart : 60000,
+    }
+};
 ```
 
-## 🌐 Deploy
+*   `cryptos`: An array of objects, where each object represents a cryptocurrency to be displayed on the dashboard.
+    *   `id`: A unique identifier for the cryptocurrency (e.g., 'bitcoin').
+    *   `symbol`: The cryptocurrency symbol (e.g., 'BTC').
+    *   `name`: The display name of the cryptocurrency (e.g., 'Bitcoin').
+    *   `binanceSymbol`: The symbol used for the Binance API (e.g., 'BTCUSDT').
+    *   `color`: The color used for the cryptocurrency in the UI.
+*   `apis`: An object containing the base URLs for the APIs used in the application.
+*   `updateIntervals`: An object that defines the update intervals (in milliseconds) for different data points.
 
-Este projeto está configurado para deploy em:
-- **Netlify** (Recomendado)
-- **Vercel**
-- **GitHub Pages**
-- **Firebase Hosting**
+### User Settings (`state.settings`)
 
-## 📈 APIs Utilizadas
+These settings can be changed by the user through the settings modal.
 
-- **Binance API**: Dados de preço em tempo real
-- **CoinGecko API**: Informações de mercado e metadados
-- **Fear & Greed Index API**: Sentimento do mercado
-- **API de Recomendações**: Sistema de IA para análise técnica
+```javascript
+let state = {
+    // ... other state properties
+    settings: {
+        model: 'CNN',
+        timeframe: '4h',
+        candles: 200,
+        updateInterval: 30000,
+        profile: 'moderate',
+        soundNotifications: false
+    },
+    // ... other state properties
+};
+```
 
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-**CryptoDash Pro** - Desenvolvido com ❤️ para traders e entusiastas de criptomoedas
+*   `model`: The machine learning model to use for trading recommendations (e.g., 'CNN').
+*   `timeframe`: The chart timeframe (e.g., '1h', '4h', '1d').
+*   `candles`: The number of candles to display on the chart.
+*   `updateInterval`: The interval at which to update the cryptocurrency prices.
+*   `profile`: The user's investment profile (e.g., 'conservative', 'moderate', 'aggressive').
+*   `soundNotifications`: Whether to enable sound notifications for alerts.
