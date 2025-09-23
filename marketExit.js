@@ -1,5 +1,4 @@
 // marketExit.js - Market Exit Indicators Module
-import { config } from './config.js';
 import { state } from './state.js';
 import { formatCurrency, formatNumber } from './utils.js';
 
