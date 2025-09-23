@@ -1,0 +1,738 @@
+/* Dashboard de Criptomoedas - Estilos CSS */
+
+:root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-card: #21262d;
+    --text-primary: #ffffff;
+    --text-secondary: #8b949e;
+    --accent-blue: #1f6feb;
+    --accent-green: #238636;
+    --accent-red: #da3633;
+    --accent-yellow: #bb8009;
+    --border-color: #30363d;
+}
+
+body {
+    background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.crypto-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.crypto-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border-color: var(--accent-blue);
+}
+
+.gauge-container {
+    position: relative;
+    width: 200px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.gauge-bg {
+    fill: none;
+    stroke: #30363d;
+    stroke-width: 20;
+}
+
+.gauge-fill {
+    fill: none;
+    stroke-width: 20;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease;
+}
+
+.price-positive { 
+    color: var(--accent-green); 
+}
+
+.price-negative { 
+    color: var(--accent-red); 
+}
+
+.page-view {
+    display: none;
+}
+
+.page-view.active {
+    display: block;
+}
+
+.nav-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+.nav-btn.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+.chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.profile-selector {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px;
+    color: var(--text-primary);
+}
+
+.profile-selector:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.target-stop-card {
+    background: linear-gradient(135deg, #238636, #2ea043);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+}
+
+.target-stop-card.sell {
+    background: linear-gradient(135deg, #da3633, #f85149);
+}
+
+.alert-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--accent-red);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+
+
+/* Estilos adicionais para integração com LightweightCharts */
+.nav-btn-sm {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+}
+
+.chart-mode-active {
+    background: var(--accent-green) !important;
+    border-color: var(--accent-green) !important;
+}
+
+/* Marcadores do gráfico LightweightCharts */
+.tv-lightweight-charts .series-markers-container > div {
+    border-radius: 50% !important;
+    width: 10px !important;
+    height: 10px !important;
+    border: 1px solid #ffffff !important;
+}
+
+.buy-marker {
+    background-color: var(--accent-green) !important;
+}
+
+.sell-marker {
+    background-color: var(--accent-red) !important;
+}
+
+.last-marker {
+    width: 14px !important;
+    height: 14px !important;
+    border: 2px solid var(--accent-yellow) !important;
+}
+
+/* Responsividade para controles do gráfico */
+@media (max-width: 768px) {
+    /* Center main nav items on mobile */
+    nav .flex-col {
+        align-items: center;
+    }
+    nav .flex-col > div {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem; /* Add some gap for wrapped items */
+    }
+
+    /* Chart container adjustments for mobile */
+    .chart-container .flex:not(#timeframe-buttons) {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* Make chart buttons horizontally scrollable on mobile */
+    .chart-container div#timeframe-buttons {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap; /* Keep buttons in one line */
+        gap: 6px;
+        justify-content: flex-start;
+        overflow-x: auto; /* Allow horizontal scrolling */
+        padding: 8px 4px;
+        margin: 0 -4px; /* Compensate padding for better alignment */
+
+        /* Hide scrollbar for a cleaner look */
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+
+    .chart-container div#timeframe-buttons::-webkit-scrollbar {
+        display: none;  /* Chrome, Safari, Opera */
+    }
+
+    /* Optimize button sizes for mobile */
+    .chart-container div#timeframe-buttons .nav-btn-sm {
+        min-width: 50px;
+        padding: 8px 12px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Special styling for ruler button on mobile */
+    .chart-container div#timeframe-buttons #ruler-btn {
+        min-width: 70px;
+        padding: 8px 10px;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    /* Ensure buttons don't get too small */
+    .chart-container div#timeframe-buttons button {
+        flex-shrink: 0;
+    }
+}
+
+/* Market Exit Indicator Styles */
+.market-exit-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid #0f3460;
+    transition: all 0.3s ease;
+}
+
+.market-exit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(15, 52, 96, 0.4);
+    border-color: #1f6feb;
+}
+
+.market-exit-card .text-green-400 {
+    color: #10b981;
+}
+
+.market-exit-card .text-yellow-400 {
+    color: #f59e0b;
+}
+
+.market-exit-card .text-red-400 {
+    color: #ef4444;
+}
+
+/* Market Exit Page Styles */
+#market-exit-page {
+    background: linear-gradient(135deg, #0d1117, #161b22);
+}
+
+#market-exit-page .crypto-card {
+    background: linear-gradient(135deg, #21262d, #30363d);
+    border: 1px solid #444;
+}
+
+#market-exit-page h1 {
+    background: linear-gradient(135deg, #1f6feb, #58a6ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.indicator-card {
+    transition: all 0.3s ease;
+}
+
+.indicator-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Animação de pulsação para alto risco */
+@keyframes pulse-red {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.high-risk-pulse {
+    animation: pulse-red 2s infinite;
+}
+
+/* Estilos para indicadores individuais */
+.indicator-score-bar {
+    height: 4px;
+    border-radius: 2px;
+    transition: width 0.8s ease;
+}
+
+.indicator-trend-up {
+    color: #10b981;
+}
+
+.indicator-trend-down {
+    color: #ef4444;
+}
+
+.indicator-trend-stable {
+    color: #6b7280;
+}
+
+/* Responsividade para Market Exit */
+@media (max-width: 768px) {
+    #market-exit-page .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    #market-exit-page .text-6xl {
+        font-size: 3rem;
+    }
+}
+
+
+
+/* Estilos para seletor de criptomoeda */
+.crypto-selector {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    min-width: 180px;
+}
+
+.crypto-selector:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.crypto-selector option {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    padding: 8px;
+}
+
+/* Modal de configurações */
+.settings-modal {
+    backdrop-filter: blur(4px);
+}
+
+.settings-modal .modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.settings-modal input[type="checkbox"] {
+    accent-color: var(--accent-blue);
+}
+
+.settings-modal select {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.settings-modal select:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.settings-modal label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Botões de timeframe ativos */
+.nav-btn-sm.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: white;
+}
+
+/* Container do gráfico LightweightCharts */
+.chart-widget-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#chart-container {
+    background: var(--chart-bg, #2d3748);
+}
+
+/* Notificações */
+.notification {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsividade para o seletor de cripto */
+@media (max-width: 768px) {
+    .crypto-selector {
+        min-width: 120px;
+        font-size: 0.75rem;
+    }
+    
+    .flex.items-center.space-x-3 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .flex.items-center.space-x-3 h2 {
+        margin-top: 10px;
+    }
+}
+
+/* Melhorias no modal para dispositivos móveis */
+@media (max-width: 640px) {
+    .settings-modal .modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        max-width: none;
+    }
+}
+
+
+/* Visualização em lista de criptomoedas */
+.crypto-list-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.crypto-list-table {
+    width: 100%;
+}
+
+.crypto-list-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.crypto-list-body {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.crypto-list-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+    align-items: center;
+}
+
+.crypto-list-row:hover {
+    background: var(--bg-secondary);
+}
+
+.crypto-list-row:last-child {
+    border-bottom: none;
+}
+
+.crypto-col-crypto,
+.crypto-col-price,
+.crypto-col-change,
+.crypto-col-volume,
+.crypto-col-target,
+.crypto-col-stop,
+.crypto-col-recommendation,
+.crypto-col-actions {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.crypto-col-crypto {
+    font-weight: 500;
+}
+
+.crypto-col-price {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.crypto-col-change {
+    font-weight: 500;
+}
+
+.crypto-col-volume {
+    color: var(--text-secondary);
+}
+
+.crypto-col-target,
+.crypto-col-stop {
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.crypto-col-recommendation {
+    justify-content: center;
+}
+
+.crypto-col-actions {
+    justify-content: center;
+}
+
+.btn-details {
+    background: var(--accent-blue);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-details:hover {
+    background: var(--accent-blue-hover);
+}
+
+.recommendation-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.rec-buy {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.rec-sell {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.rec-hold {
+    background: rgba(107, 114, 128, 0.2);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+/* Mode-specific container styles */
+#crypto-cards.list-view-mode {
+    display: block;
+    width: 100%;
+}
+
+
+.loading-small {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Funcionalidade de régua */
+/* Caixa de informações da régua - Garantir visibilidade */
+.ruler-info {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    background: rgba(45, 55, 72, 0.95) !important;
+    border: 2px solid #4a5568 !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    color: white !important;
+    font-size: 14px !important;
+    z-index: 9999 !important;
+    min-width: 250px !important;
+    max-width: 300px !important;
+    text-align: center !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    display: block !important;
+}
+
+.ruler-measurement {
+    position: relative;
+}
+
+.ruler-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.ruler-data {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.ruler-data div {
+    margin-bottom: 4px;
+}
+
+.ruler-close {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--accent-red);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ruler-close:hover {
+    background: #dc2626;
+}
+
+#ruler-btn.active {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+}
+
+/* Estilos para barras de progresso */
+.confidence-container,
+.market-exit-progress-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    background-color: #374151; /* bg-gray-700 */
+    border-radius: 9999px; /* rounded-full */
+    height: 0.5rem; /* h-2 */
+}
+
+.confidence-progress-bar,
+.market-exit-progress-bar {
+    max-width: 100%;
+    transition: width 0.5s ease;
+    height: 100%;
+    border-radius: 9999px;
+}
+
+/* Responsividade para lista */
+@media (max-width: 1024px) {
+    .crypto-list-header,
+    .crypto-list-row {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        font-size: 0.8rem;
+    }
+    
+    .crypto-col-target,
+    .crypto-col-stop,
+    .crypto-col-volume,
+    .crypto-col-actions {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .crypto-list-header,
+    .crypto-list-row {
+        grid-template-columns: 2fr 1fr 1fr;
+        padding: 0.75rem;
+    }
+    
+    .crypto-col-recommendation {
+        display: none;
+    }
+    
+    .ruler-info {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
