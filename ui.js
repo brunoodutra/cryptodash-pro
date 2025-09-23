@@ -1,0 +1,720 @@
+import { CONFIG } from './config.js';
+import { state } from './state.js';
+import { fetchRecommendation, fetchTargetStop, fetchData, fetchCryptoData} from './api.js';
+import { loadLightweightChart} from './chart.js';
+import { formatCurrency, formatLargeNumber } from './utils.js';
+
+
+
+/**
+ * Renders the cryptocurrency data as cards or a list, depending on the current view mode.
+ * @param {any[]} cryptoData An array of cryptocurrency data objects.
+ */
+export function renderCryptoCards(cryptoData) {
+    console.log('renderCryptoCards chamado com viewMode:', state.viewMode);
+    const container = document.getElementById('crypto-cards');
+    container.innerHTML = '';
+    
+    if (state.viewMode === 'list') {
+        console.log('Renderizando modo lista');
+        renderCryptoList(cryptoData);
+        return;
+    }
+    
+    cryptoData.forEach(crypto => {
+        const config = CONFIG.cryptos.find(c => c.id === crypto.id);
+        if (!config) return;
+        
+        const changeClass = crypto.price_change_percentage_24h >= 0 ? 'price-positive' : 'price-negative';
+        
+        const card = document.createElement('div');
+        card.className = 'crypto-card p-6 relative';
+        card.onclick = () => showCryptoDetail(crypto.id);
+        
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                    <img data-src="${crypto.image}" alt="${crypto.name}" class="lazy w-12 h-12 rounded-full">
+                    <div>
+                        <h3 class="text-lg font-bold">${crypto.name}</h3>
+                        <p class="text-gray-400">${crypto.symbol.toUpperCase()}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold">${formatCurrency(crypto.current_price)}</p>
+                    <p class="text-sm ${changeClass}">
+                        ${crypto.price_change_percentage_24h >= 0 ? '+' : ''}${crypto.price_change_percentage_24h.toFixed(2)}%
+                    </p>
+                </div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Market Cap:</span>
+                    <span>$${formatLargeNumber(crypto.market_cap)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Volume 24h:</span>
+                    <span>$${formatLargeNumber(crypto.total_volume)}</span>
+                </div>
+            </div>
+            
+            <div class="mt-4" id="recommendation-${crypto.id}">
+                <div class="flex items-center space-x-2">
+                    <span class="loading"></span>
+                    <span class="text-sm text-gray-400">Carregando recomendação...</span>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(card);
+        
+        // Load recommendation
+        loadRecommendationForCard(crypto);
+    });
+
+    lazyLoadImages();
+}
+
+/**
+ * Renders the cryptocurrency data as a list.
+ * @param {any[]} cryptoData An array of cryptocurrency data objects.
+ */
+export function renderCryptoList(cryptoData) {
+    console.log('renderCryptoList chamado com', cryptoData.length, 'itens');
+    const container = document.getElementById('crypto-cards');
+
+    // 1. Create the main table structure (shell)
+    const tableShell = `
+        <div class="crypto-list-container">
+            <div class="crypto-list-table">
+                <div class="crypto-list-header">
+                    <div class="crypto-col-crypto">Crypto</div>
+                    <div class="crypto-col-price">Preço</div>
+                    <div class="crypto-col-change">Variação 24h</div>
+                    <div class="crypto-col-volume">Volume</div>
+                    <div class="crypto-col-target">Target</div>
+                    <div class="crypto-col-stop">Stop Loss</div>
+                    <div class="crypto-col-recommendation">Recomendação</div>
+                    <div class="crypto-col-actions">Ações</div>
+                </div>
+                <div class="crypto-list-body" id="crypto-list-body"></div>
+            </div>
+        </div>
+    `;
+    container.innerHTML = tableShell;
+
+    // 2. Render rows asynchronously in chunks
+    const tbody = document.getElementById('crypto-list-body');
+    renderListInChunks(cryptoData, tbody);
+}
+
+/**
+ * Renders a list of data into a container asynchronously, in chunks, to avoid
+ * blocking the main UI thread.
+ * @param {any[]} data The array of data to render.
+ * @param {HTMLElement} container The container element to render the chunks into.
+ */
+function renderListInChunks(data, container) {
+    const chunkSize = 20; // Process 20 items per frame
+    let index = 0;
+
+    function renderChunk() {
+        const fragment = document.createDocumentFragment();
+        const endIndex = Math.min(index + chunkSize, data.length);
+
+        for (let i = index; i < endIndex; i++) {
+            const crypto = data[i];
+            const config = CONFIG.cryptos.find(c => c.id === crypto.id);
+            if (!config) continue;
+
+            const changeClass = crypto.price_change_percentage_24h >= 0 ? 'price-positive' : 'price-negative';
+            
+            const row = document.createElement('div');
+            row.className = 'crypto-list-row';
+            row.onclick = () => showCryptoDetail(crypto.id);
+
+            row.innerHTML = `
+                <div class="crypto-col-crypto">
+                    <div class="flex items-center space-x-3">
+                        <img data-src="${crypto.image}" alt="${crypto.name}" class="lazy w-8 h-8 rounded-full">
+                        <div>
+                            <div class="font-bold">${crypto.name}</div>
+                            <div class="text-sm text-gray-400">${crypto.symbol.toUpperCase()}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="crypto-col-price">
+                    <div class="font-bold">${formatCurrency(crypto.current_price)}</div>
+                </div>
+                <div class="crypto-col-change">
+                    <span class="${changeClass}">
+                        ${crypto.price_change_percentage_24h >= 0 ? '+' : ''}${crypto.price_change_percentage_24h.toFixed(2)}%
+                    </span>
+                </div>
+                <div class="crypto-col-volume">
+                    $${formatLargeNumber(crypto.total_volume)}
+                </div>
+                <div class="crypto-col-target" id="target-${crypto.id}">--</div>
+                <div class="crypto-col-stop" id="stop-${crypto.id}">--</div>
+                <div class="crypto-col-recommendation" id="rec-${crypto.id}">
+                    <span class="loading-small"></span>
+                </div>
+                <div class="crypto-col-actions">
+                    <button class="btn-details">
+                        Ver Detalhes
+                    </button>
+                </div>
+            `;
+            fragment.appendChild(row);
+        }
+
+        container.appendChild(fragment);
+        index += chunkSize;
+
+        if (index < data.length) {
+            // Schedule the next chunk
+            requestAnimationFrame(renderChunk);
+        } else {
+            // All chunks rendered, now trigger secondary loads
+            data.forEach(crypto => {
+                if (CONFIG.cryptos.some(c => c.id === crypto.id)) {
+                    loadRecommendationForListOptimized(crypto);
+                }
+            });
+            lazyLoadImages();
+        }
+    }
+
+    // Start the rendering process
+    requestAnimationFrame(renderChunk);
+}
+
+/**
+ * Loads and displays the trading recommendation for a cryptocurrency list row (optimized version).
+ * @param {any} crypto The cryptocurrency data object.
+ */
+export async function loadRecommendationForListOptimized(crypto) {
+    console.log('loadRecommendationForListOptimized para', crypto.id);
+    const config = CONFIG.cryptos.find(c => c.id === crypto.id);
+    if (!config) return;
+    
+    const recElement = document.getElementById(`rec-${crypto.id}`);
+    const targetElement = document.getElementById(`target-${crypto.id}`);
+    const stopElement = document.getElementById(`stop-${crypto.id}`);
+    
+    if (!recElement || !targetElement || !stopElement) {
+        console.log('Elementos não encontrados para', crypto.id);
+        return;
+    }
+    
+    // Use cached recommendation if available
+    const cacheKey = `recommendation_${config.symbol}_${state.settings.model}`;
+    let recommendation = state.cache[cacheKey]?.data;
+    
+    console.log('Cache key:', cacheKey, 'Recomendação em cache:', recommendation ? 'Sim' : 'Não');
+    console.log('Cache completo:', state.cache);
+    
+    // Fetch only if not cached or cache expired
+    if (!recommendation) {
+        console.log('Buscando recomendação para', config.symbol);
+        try {
+            recommendation = await fetchRecommendation(config.symbol);
+            console.log('Recomendação recebida:', recommendation);
+            
+            // Cache the recommendation
+            state.cache[cacheKey] = {
+                data: recommendation,
+                timestamp: Date.now()
+            };
+            console.log('Recomendação armazenada em cache');
+        } catch (error) {
+            console.error('Erro ao buscar recomendação:', error);
+            recommendation = null;
+        }
+    }
+    
+    if (recommendation && recommendation.recommendation) {
+        const rec = recommendation.recommendation.toLowerCase();
+        const confidence = recommendation.percentage.toFixed(2) || 'N/A';
+        
+        recElement.innerHTML = `
+            <span class="px-2 py-1 rounded text-xs font-bold ${
+                rec === 'buy' ? 'bg-green-600' : 
+                rec === 'sell' ? 'bg-red-600' : 
+                'bg-gray-600'
+            }">${rec.toUpperCase()}</span>
+            <div class="text-xs text-gray-400">${confidence * 100}%</div>
+        `;
+        
+        // Load target/stop only for buy/sell recommendations
+        if (rec === 'buy' || rec === 'sell') {
+            const targetStop = await fetchTargetStop(config.symbol, rec);
+            if (targetStop) {
+                targetElement.textContent = `$${targetStop.target}`;
+                stopElement.textContent = `$${targetStop.stop_loss}`;
+            } else {
+                targetElement.textContent = '--';
+                stopElement.textContent = '--';
+            }
+        } else {
+            targetElement.textContent = '--';
+            stopElement.textContent = '--';
+        }
+    } else {
+        recElement.innerHTML = '<span class="text-gray-400">--</span>';
+        targetElement.textContent = '--';
+        stopElement.textContent = '--';
+    }
+}
+
+/**
+ * Loads and displays the trading recommendation for a cryptocurrency card.
+ * @param {any} crypto The cryptocurrency data object.
+ */
+export async function loadRecommendationForCard(crypto) {
+    const config = CONFIG.cryptos.find(c => c.id === crypto.id);
+    if (!config) return;
+    
+    const container = document.getElementById(`recommendation-${crypto.id}`);
+    if (!container) return;
+    
+    // Use cached recommendation if available
+    const cacheKey = `recommendation_${config.symbol}_${state.settings.model}`;
+    let recommendation = state.cache[cacheKey]?.data;
+    
+    // Fetch only if not cached or cache expired
+    if (!recommendation) {
+        recommendation = await fetchRecommendation(config.symbol);
+    }
+    
+    if (recommendation && recommendation.recommendation) {
+        const rec = recommendation.recommendation.toLowerCase();
+        const isAction = rec === 'buy' || rec === 'sell';
+        
+        const confidence = recommendation.percentage.toFixed(2)|| 'N/A' ; // Default to 70-100% if not available
+
+        let content = `
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium">Recomendação:</span>
+                <span class="px-2 py-1 rounded text-xs font-bold ${
+                    rec === 'buy' ? 'bg-green-600' : 
+                    rec === 'sell' ? 'bg-red-600' : 
+                    'bg-gray-600'
+                }">${rec.toUpperCase()}</span>
+            </div>
+            <div class="confidence-container mt-1 w-full">
+                <div class="confidence-progress-bar" style="width: ${confidence * 100}%; background-color: ${
+                    rec === 'buy' ? '#10b981' : 
+                    rec === 'sell' ? '#ef4444' : 
+                    '#6b7280'
+                };"></div>
+            </div>
+            <div class="text-xs text-right">Confiança: ${confidence * 100}%</div>
+        `;
+        
+        if (isAction) {
+            const targetStop = await fetchTargetStop(config.symbol, rec);
+            if (targetStop) {
+                content += `
+                    <div class="target-stop-card ${rec === 'sell' ? 'sell' : ''} mt-2">
+                        <div class="flex justify-between text-sm">
+                            <div>
+                                <div class="font-medium">Target:</div>
+                                <div class="text-lg font-bold">$${targetStop.target}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-medium">Stop Loss:</div>
+                                <div class="text-lg font-bold">$${targetStop.stop_loss}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs opacity-75 mt-2">
+                            Perfil: ${state.settings.profile} | Modelo: ${state.settings.model}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        container.innerHTML = content;
+    } else {
+        container.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium">Recomendação:</span>
+                <span class="px-2 py-1 rounded text-xs bg-gray-600">N/A</span>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Shows a specific page and hides all others.
+ * @param {string} page The ID of the page to show.
+ */
+export function showPage(page) {
+    // Hide all pages
+    document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    
+    // Show selected page
+    const pageElement = document.getElementById(`${page}-page`);
+    if (pageElement) {
+        pageElement.classList.add('active');
+    } else {
+        console.error(`Elemento com ID ${page}-page não encontrado`);
+    }
+    
+    // Try to find navigation element with different possible IDs - CORREÇÃO APLICADA
+    const possibleNavIds = [`nav-${page}`, `${page}-nav`, `nav_${page}`, `${page}_nav`];
+    let navElement = null;
+    
+    for (const navId of possibleNavIds) {
+        navElement = document.getElementById(navId);
+        if (navElement) break;
+    }
+    
+    if (navElement) {
+        navElement.classList.add('active');
+    } else {
+        console.warn(`Elemento de navegação para ${page} não encontrado. IDs tentados: ${possibleNavIds.join(', ')}`);
+        // Não gerar erro se não encontrar navegação
+    }
+    
+    state.currentPage = page;
+}
+
+/**
+ * Shows the detailed view for a specific cryptocurrency.
+ * @param {string} cryptoId The ID of the cryptocurrency to show.
+ */
+export async function showCryptoDetail(cryptoId) {
+    state.currentCrypto = cryptoId;
+
+    const config = CONFIG.cryptos.find(c => c.id === cryptoId);
+    if (!config) {
+        console.error('Configuração não encontrada para crypto:', cryptoId);
+        return;
+    }
+
+    // Update selector
+    const selector = document.getElementById('crypto-selector');
+    if (selector) selector.value = cryptoId;
+
+    try {
+        const url = `${CONFIG.apis.binance}/ticker/24hr?symbol=${config.binanceSymbol}`;
+        const data = await fetchData(url, config.id, CONFIG.updateIntervals.prices);
+
+        if (data) {
+            const current_price = parseFloat(data.lastPrice);
+            const volume = parseFloat(data.quoteVolume);
+            const change = parseFloat(data.priceChangePercent);
+
+            document.getElementById('crypto-title').textContent = config.name;
+            document.getElementById('crypto-name').textContent = config.name;
+            document.getElementById('crypto-symbol').textContent = config.symbol.toUpperCase();
+            
+            //document.getElementById('crypto-image').src = `https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.17.0/svg/color/${config.symbol.toLowerCase()}.svg`,
+            document.getElementById('crypto-image').src = `https://raw.githubusercontent.com/Cryptofonts/cryptoicons/refs/heads/master/SVG/${config.symbol.toLowerCase()}.svg`,
+            document.getElementById('crypto-price').textContent = formatCurrency(current_price);
+
+            const changeElement = document.getElementById('crypto-change');
+            changeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+            changeElement.className = `font-bold ${change >= 0 ? 'price-positive' : 'price-negative'}`;
+
+            document.getElementById('crypto-volume').textContent = '$' + formatLargeNumber(volume);
+            document.getElementById('crypto-market-cap').textContent = '$' + formatLargeNumber(0); // ou estimativa
+
+            loadCryptoRecommendation(state.currentCrypto);
+        }
+
+    } catch (error) {
+        console.error('Error loading crypto detail from Binance:', error);
+    }
+
+    showPage('crypto');
+    loadLightweightChart(cryptoId);
+}
+
+/**
+ * Loads and displays the trading recommendation for the detailed cryptocurrency view.
+ * @param {string} cryptoId The ID of the cryptocurrency.
+ */
+export async function loadCryptoRecommendation(cryptoId) {
+    const config = CONFIG.cryptos.find(c => c.id === cryptoId);
+    if (!config) return;
+    
+    const container = document.getElementById('recommendation-content');
+    container.innerHTML = '<span class="loading"></span>';
+    
+    const recommendation = await fetchRecommendation(config.symbol);
+    
+    if (recommendation && recommendation.recommendation) {
+        const rec = recommendation.recommendation.toLowerCase();
+        const isAction = rec === 'buy' || rec === 'sell';
+        
+        const confidence = recommendation.percentage.toFixed(2)|| 'N/A' ; // Default to 70-100% if not available
+
+        let content = `
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium">Recomendação:</span>
+                <span class="px-2 py-1 rounded text-xs font-bold ${
+                    rec === 'buy' ? 'bg-green-600' : 
+                    rec === 'sell' ? 'bg-red-600' : 
+                    'bg-gray-600'
+                }">${rec.toUpperCase()}</span>
+            </div>
+            <div class="confidence-container mt-1 w-full"">
+                <div class="confidence-progress-bar" style="width: ${confidence * 100}%; background-color: ${
+                    rec === 'buy' ? '#10b981' : 
+                    rec === 'sell' ? '#ef4444' : 
+                    '#6b7280'
+                };"></div>
+            </div>
+            <div class="text-xs text-right">Confiança: ${confidence * 100}%</div>
+        `;
+        
+        if (isAction) {
+            const targetStop = await fetchTargetStop(config.symbol, rec);
+            if (targetStop) {
+                content += `
+                    <div class="target-stop-card ${rec === 'sell' ? 'sell' : ''}">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-sm opacity-75">Target Price</div>
+                                <div class="text-2xl font-bold">$${targetStop.target}</div>
+                            </div>
+                            <div>
+                                <div class="text-sm opacity-75">Stop Loss</div>
+                                <div class="text-2xl font-bold">$${targetStop.stop_loss}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs opacity-75 mt-3">
+                            Baseado no perfil: ${state.settings.profile} | Modelo: ${state.settings.model}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        container.innerHTML = content;
+    } else {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <span class="px-3 py-2 rounded text-sm bg-gray-600">Recomendação não disponível</span>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Updates the Market Exit card with new data.
+ * @param {Object} marketExitData The market exit indicator data.
+ */
+export function updateMarketExitCard(marketExitData) {
+    const marketExitCard = document.getElementById('market-exit-card');
+    if (!marketExitCard || !marketExitData) return;
+    
+    // Update score
+    const scoreElement = marketExitCard.querySelector('.market-exit-score');
+    if (scoreElement) {
+        scoreElement.textContent = marketExitData.score;
+    }
+    
+    // Update risk level and styling
+    const statusElement = marketExitCard.querySelector('.market-exit-status');
+    if (statusElement) {
+        statusElement.textContent = marketExitData.riskLevel;
+        
+        // Update colors based on risk level
+        let colorClass = '';
+        switch (marketExitData.riskLevel) {
+            case 'Low Risk':
+                colorClass = 'text-green-400';
+                break;
+            case 'Moderate Risk':
+                colorClass = 'text-yellow-400';
+                break;
+            case 'High Risk':
+                colorClass = 'text-red-400 high-risk-pulse';
+                break;
+            default:
+                colorClass = 'text-gray-400';
+        }
+        
+        statusElement.className = `market-exit-status text-lg font-bold ${colorClass}`;
+    }
+    
+    // Hide loading
+    const loadingElement = marketExitCard.querySelector('.market-exit-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+    
+    // Update last updated time
+    const timeElement = marketExitCard.querySelector('.market-exit-time');
+    if (timeElement && marketExitData.timestamp) {
+        const date = new Date(marketExitData.timestamp);
+        timeElement.textContent = `Updated: ${date.toLocaleTimeString()}`;
+    }
+}
+
+/**
+ * Shows a notification message.
+ * @param {string} message The message to display.
+ * @param {string} type The type of notification ('info', 'success', or 'error').
+ */
+export function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${
+        type === 'success' ? 'bg-green-600' : 
+        type === 'error' ? 'bg-red-600' : 
+        'bg-blue-600'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+/**
+ * Toggles the color theme of the dashboard.
+ */
+export function toggleTheme() {
+    const body = document.body;
+    const icon = document.getElementById('theme-icon');
+    
+    if (body.classList.contains('light-theme')) {
+        body.classList.remove('light-theme');
+        icon.className = 'fas fa-moon';
+    } else {
+        body.classList.add('light-theme');
+        icon.className = 'fas fa-sun';
+    }
+}
+
+/**
+ * Toggles the view mode between cards and list.
+ */
+export function toggleViewMode() {
+    console.log('🔄 Toggle view mode chamado, modo atual:', state.viewMode);
+    
+    state.viewMode = state.viewMode === 'cards' ? 'list' : 'cards';
+    console.log('📊 Novo modo:', state.viewMode);
+
+    const container = document.getElementById('crypto-cards');
+    const toggleBtn = document.getElementById('view-toggle-btn');
+
+    if (state.viewMode === 'list') {
+        if (toggleBtn) {
+            toggleBtn.innerHTML = `<i class="fas fa-th-large mr-2"></i>Cards`;
+        }
+        if (container) {
+            container.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'xl:grid-cols-3', 'gap-6');
+            container.classList.add('list-view-mode');
+        }
+    } else {
+        if (toggleBtn) {
+            toggleBtn.innerHTML = `<i class="fas fa-list mr-2"></i>Lista`;
+        }
+        if (container) {
+            container.classList.remove('list-view-mode');
+            container.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'xl:grid-cols-3', 'gap-6');
+        }
+    }
+    
+    // Re-render with existing data
+    const cachedData = state.cache['crypto_data'];
+    if (cachedData && cachedData.data) {
+        renderCryptoCards(cachedData.data);
+    } else {
+        fetchCryptoData(); // Fallback
+    }
+}
+
+/**
+ * Pre-loads recommendations for all cryptocurrencies to improve performance.
+ * This function should be called after the initial data load.
+ */
+export async function preloadRecommendations() {
+    if (!CONFIG.cryptos || CONFIG.cryptos.length === 0) return;
+    
+    // Create promises for all recommendation fetches
+    const recommendationPromises = CONFIG.cryptos.map(async (crypto) => {
+        const cacheKey = `recommendation_${crypto.symbol}_${state.settings.model}`;
+        const cached = state.cache[cacheKey];
+        
+        // Skip if already cached and not expired
+        if (cached && Date.now() - cached.timestamp < CONFIG.updateIntervals.prices) {
+            return;
+        }
+        
+        try {
+            const recommendation = await fetchRecommendation(crypto.symbol);
+            if (recommendation) {
+                state.cache[cacheKey] = {
+                    data: recommendation,
+                    timestamp: Date.now()
+                };
+            }
+        } catch (error) {
+            console.error(`Failed to preload recommendation for ${crypto.symbol}:`, error);
+        }
+    });
+    
+    // Execute all promises in parallel but don't wait for completion
+    // This allows the UI to remain responsive
+    Promise.all(recommendationPromises).then(() => {
+        console.log('Recommendations preloaded successfully');
+    }).catch(error => {
+        console.error('Error preloading recommendations:', error);
+    });
+}
+
+/**
+ * Updates the Fear & Greed Index gauge.
+ * @param {number} value The Fear & Greed Index value (0-100).
+ */
+export function updateGauge(value) {
+    const gauge = document.getElementById('gauge-fill');
+    const circumference = 220;
+    const progress = (value / 100) * circumference;
+    
+    let color;
+    if (value <= 20) color = '#da3633';
+    else if (value <= 40) color = '#f85149';
+    else if (value <= 60) color = '#bb8009';
+    else if (value <= 80) color = '#e3b341';
+    else color = '#238636';
+    
+    gauge.style.stroke = color;
+    gauge.style.strokeDasharray = `${progress} ${circumference}`;
+}
+
+function lazyLoadImages() {
+    const lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+
+    if ("IntersectionObserver" in window) {
+        let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    let lazyImage = entry.target;
+                    lazyImage.src = lazyImage.dataset.src;
+                    lazyImage.classList.remove("lazy");
+                    lazyImageObserver.unobserve(lazyImage);
+                }
+            });
+        });
+
+        lazyImages.forEach(function(lazyImage) {
+            lazyImageObserver.observe(lazyImage);
+        });
+    } else {
+        // Fallback for browsers that don't support IntersectionObserver
+        lazyImages.forEach(function(lazyImage) {
+            lazyImage.src = lazyImage.dataset.src;
+        });
+    }
+}
