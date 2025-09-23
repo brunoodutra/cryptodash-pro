@@ -1,0 +1,34 @@
+export let state = {
+    currentPage: 'dashboard',
+    currentCrypto: null,
+    investmentProfile: 'moderate',
+    portfolio: { balance: 10000, positions: [], transactions: [] },
+    alerts: [],
+    cache: {},
+    // Chart state for LightweightCharts (now default)
+    lightweightChart: null,
+    candlestickSeries: null,
+    volumeSeries: null,
+    recommendationHistory: [],
+    candlestickData: [],
+    // Configuration state
+    settings: {
+        model: 'CNN',
+        timeframe: '4h',
+        candles: 200,
+        updateInterval: 30000,
+        profile: 'moderate',
+        soundNotifications: false
+    },
+    // View state
+    viewMode: 'cards', // 'cards' or 'list'
+    // Ruler state - ENHANCED AND FIXED
+    ruler: {
+        active: false,
+        startPoint: null,
+        endPoint: null,
+        lineSeries: null,
+        infoBox: null,
+        isDragging: false
+    }
+};
