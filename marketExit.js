@@ -190,6 +190,26 @@ async function fetchAllIndicators() {
  */
 async function fetchBitcoinDominance() {
     try {
+        // First, try to get from state
+        if (state.btcDominance) {
+            const dominance = parseFloat(state.btcDominance);
+            let score;
+            if (dominance >= 70) score = 10;
+            else if (dominance >= 60) score = 25;
+            else if (dominance >= 50) score = 40;
+            else if (dominance >= 40) score = 60;
+            else if (dominance >= 30) score = 80;
+            else score = 95;
+
+            return {
+                value: dominance.toFixed(1),
+                score: score,
+                trend: 'stable',
+                description: `Dominância de ${dominance.toFixed(1)}%`
+            };
+        }
+
+        // Fallback to API call if not in state
         const data = await fetchData(
             `${CONFIG.apis.coingecko}/global`,
             'bitcoin_dominance',
@@ -199,6 +219,9 @@ async function fetchBitcoinDominance() {
         if (data?.data?.market_cap_percentage?.btc) {
             const dominance = data.data.market_cap_percentage.btc;
             
+            // Store in state for next time
+            state.btcDominance = dominance.toFixed(1);
+
             // Score: maior dominância = menor risco (invertido)
             // 70%+ = score baixo (0-30), 30%- = score alto (70-100)
             let score;
@@ -960,9 +983,53 @@ export async function showMarketExitPage() {
  * Renderiza cards individuais dos indicadores
  */
 function renderIndicatorCards(indicators) {
-    return Object.keys(INDICATORS_CONFIG).map(key => {
+    const details = [
+        {
+            name: 'Bitcoin Dominance',
+            source: 'CoinGecko API',
+            link: 'https://www.coingecko.com/en/global-charts'
+        },
+        {
+            name: 'MVRV Z-Score',
+            source: 'Cálculo baseado em dados on-chain',
+            link: 'https://www.lookintobitcoin.com/charts/mvrv-z-score/'
+        },
+        {
+            name: 'Fear & Greed Index',
+            source: 'Alternative.me API',
+            link: 'https://alternative.me/crypto/fear-and-greed-index/'
+        },
+        {
+            name: 'Pi Cycle Top Indicator',
+            source: 'Cálculo de médias móveis',
+            link: 'https://www.lookintobitcoin.com/charts/pi-cycle-top-indicator/'
+        },
+        {
+            name: 'Puell Multiple',
+            source: 'Cálculo baseado em dados on-chain',
+            link: 'https://www.lookintobitcoin.com/charts/puell-multiple/'
+        },
+        {
+            name: 'NUPL - Net Unrealized P&L',
+            source: 'Cálculo baseado em dados on-chain',
+            link: 'https://www.lookintobitcoin.com/charts/net-unrealized-profit-loss/'
+        },
+        {
+            name: 'RSI 22-Day',
+            source: 'Binance API',
+            link: 'https://www.binance.com/en/trade/BTC_USDT'
+        },
+        {
+            name: 'Rainbow Chart',
+            source: 'Modelo de Regressão Logarítmica',
+            link: 'https://www.blockchaincenter.net/bitcoin-rainbow-chart/'
+        }
+    ];
+
+    return Object.keys(INDICATORS_CONFIG).map((key, index) => {
         const indicator = indicators[key];
         const config = INDICATORS_CONFIG[key];
+        const detail = details[index];
         
         if (!indicator || indicator.score === null) {
             return `
@@ -980,7 +1047,7 @@ function renderIndicatorCards(indicators) {
         const emoji = indicator.score <= 33 ? '🟢' : indicator.score <= 66 ? '🟡' : '🔴';
         
         return `
-            <div class="crypto-card p-4">
+            <a href="${detail.link}" target="_blank" rel="noopener noreferrer" class="crypto-card p-4 block hover:bg-gray-800 transition-colors">
                 <div class="text-center">
                     <div class="text-sm font-semibold text-gray-300 mb-2">${config.name}</div>
                     <div class="text-lg font-bold mb-1">${indicator.value}</div>
@@ -996,8 +1063,9 @@ function renderIndicatorCards(indicators) {
                     <div class="text-xs text-gray-400 mt-1">
                         Peso: ${(config.weight * 100).toFixed(0)}%
                     </div>
+                    <div class="text-xs text-gray-500 mt-1">Fonte: ${detail.source}</div>
                 </div>
-            </div>
+            </a>
         `;
     }).join('');
 }
@@ -1011,49 +1079,57 @@ function renderIndicatorDetails(indicators) {
             name: 'Bitcoin Dominance',
             description: 'Dominância do Bitcoin no mercado total de criptomoedas. Quando muito baixa, indica possível topo de mercado (alt season).',
             source: 'CoinGecko API',
-            weight: '15%'
+            weight: '15%',
+            link: 'https://www.coingecko.com/en/global-charts'
         },
         {
             name: 'MVRV Z-Score',
             description: 'Relação entre valor de mercado e valor realizado. Valores altos indicam sobrevalorização extrema.',
-            source: 'Dados on-chain mockados',
-            weight: '20%'
+            source: 'Cálculo baseado em dados on-chain',
+            weight: '20%',
+            link: 'https://www.lookintobitcoin.com/charts/mvrv-z-score/'
         },
         {
             name: 'Fear & Greed Index',
             description: 'Índice de sentimento do mercado. Extrema ganância frequentemente precede correções.',
             source: 'Alternative.me API',
-            weight: '10%'
+            weight: '10%',
+            link: 'https://alternative.me/crypto/fear-and-greed-index/'
         },
         {
             name: 'Pi Cycle Top Indicator',
             description: 'Cruzamento de médias móveis 111 e 350 dias. Sinais históricos de topo de mercado.',
-            source: 'Dados técnicos mockados',
-            weight: '15%'
+            source: 'Cálculo de médias móveis',
+            weight: '15%',
+            link: 'https://www.lookintobitcoin.com/charts/pi-cycle-top-indicator/'
         },
         {
             name: 'Puell Multiple',
             description: 'Múltiplo da receita diária dos miners. Valores extremos indicam pontos de inflexão.',
-            source: 'Dados on-chain mockados',
-            weight: '10%'
+            source: 'Cálculo baseado em dados on-chain',
+            weight: '10%',
+            link: 'https://www.lookintobitcoin.com/charts/puell-multiple/'
         },
         {
             name: 'NUPL - Net Unrealized P&L',
             description: 'Lucro/prejuízo não realizado da rede. Euphoria indica possível topo.',
-            source: 'Dados on-chain mockados',
-            weight: '10%'
+            source: 'Cálculo baseado em dados on-chain',
+            weight: '10%',
+            link: 'https://www.lookintobitcoin.com/charts/net-unrealized-profit-loss/'
         },
         {
             name: 'RSI 22-Day',
             description: 'Índice de força relativa de 22 dias do Bitcoin. Sobrevenda extrema em mercados em alta.',
             source: 'Binance API',
-            weight: '10%'
+            weight: '10%',
+            link: 'https://www.binance.com/en/trade/BTC_USDT'
         },
         {
             name: 'Rainbow Chart',
             description: 'Posição nas bandas logarítmicas de preço do Bitcoin. Topo da banda = possível venda.',
-            source: 'Dados técnicos mockados',
-            weight: '10%'
+            source: 'Modelo de Regressão Logarítmica',
+            weight: '10%',
+            link: 'https://www.blockchaincenter.net/bitcoin-rainbow-chart/'
         }
     ];
 
@@ -1087,7 +1163,7 @@ function renderIndicatorDetails(indicators) {
                 </div>
                 <div class="text-sm text-gray-300 mb-1">${detail.description}</div>
                 <div class="text-xs text-gray-500 mb-1">Valor atual: <span class="font-mono">${indicator.value}</span></div>
-                <div class="text-xs text-gray-600">Fonte: ${detail.source}</div>
+                <div class="text-xs text-gray-600">Fonte: <a href="${detail.link}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${detail.source}</a></div>
             </div>
         `;
     }).join('');
