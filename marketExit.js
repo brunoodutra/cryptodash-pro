@@ -605,9 +605,15 @@ async function fetchRainbowChart() {
                 'User-Agent': 'CryptoDash-Pro/1.0'
             }
         }); // 5 anos
+       
         const data = await response.json();
-        
-        if (!data.prices || data.prices.length < 1000) {
+
+        if (!data || !Array.isArray(data.prices)) {
+            console.warn('Estrutura inesperada:', data);
+            throw new Error('Resposta da API não contém preços.');
+        }
+        if (data.prices.length < 300) {          // limite mais realista
+            console.warn('Quantidade de preços insuficiente:', data.prices.length);
             throw new Error('Dados insuficientes para Rainbow Chart');
         }
         

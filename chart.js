@@ -2,7 +2,7 @@ import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { fetchCandlestickData, fetchRecommendationHistory } from './api.js';
 import { createRecommendationMarkers, debounce, normalizeTimeToCandle, updateCandleData, formatCurrency } from './utils.js';
-import { showPage } from './ui.js';
+import { showPage, loadCryptoRecommendation } from './ui.js';
 
 const darkThemeOptions = {
     chart: {
