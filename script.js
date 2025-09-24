@@ -38,18 +38,50 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initialized with settings:', state.settings);
     
     // Make functions globally available for HTML onclick handlers
+window.changeCrypto = changeCrypto;
+window.changeTimeframe = changeTimeframe;
 window.home_dashboard = home_dashboard;
+window.openSettings = openSettings;
+window.resetSettings = resetSettings;
+window.saveSettings = saveSettings;
 window.toggleRuler = toggleRuler;
 window.showCryptoDetail = showCryptoDetail;
 window.showRulerInfo = showRulerInfo;
 window.clearRuler = clearRuler;
 window.showMarketExitPage = showMarketExitPage;
+window.toggleMAPanel = toggleMAPanel;
+window.applyMASettings = applyMASettings;
+window.clearAllMA = clearAllMA;
+window.handlePeriodCheckboxChange = handlePeriodCheckboxChange;
+window.updateMAToggleButtonState = updateMAToggleButtonState;
+window.toggleMovingAverages = toggleMovingAverages;
+window.toggleFibonacci = toggleFibonacci;
+window.toggleRSI = toggleRSI;
+window.toggleMACD = toggleMACD;
+window.generateTradingSignals = generateTradingSignals;
+window.clearTradingSignals = clearTradingSignals;
+window.closeSignalInfo = closeSignalInfo;
+window.removeSelectedSignal = removeSelectedSignal;
 
 // Debug: Verificar se as funções estão disponíveis globalmente
-console.log('🚀 Global functions check:', {
+console.log('🔧 Functions available globally:', {
     home_dashboard: typeof window.home_dashboard,
     toggleRuler: typeof window.toggleRuler,
-    showMarketExitPage: typeof window.showMarketExitPage
+    showCryptoDetail: typeof window.showCryptoDetail,
+    showRulerInfo: typeof window.showRulerInfo,
+    clearRuler: typeof window.clearRuler,
+    showMarketExitPage: typeof window.showMarketExitPage,
+    toggleMAPanel: typeof window.toggleMAPanel,
+    applyMASettings: typeof window.applyMASettings,
+    clearAllMA: typeof window.clearAllMA,
+    toggleMovingAverages: typeof window.toggleMovingAverages,
+    toggleFibonacci: typeof window.toggleFibonacci,
+    toggleRSI: typeof window.toggleRSI,
+    toggleMACD: typeof window.toggleMACD,
+    generateTradingSignals: typeof window.generateTradingSignals,
+    clearTradingSignals: typeof window.clearTradingSignals,
+    closeSignalInfo: typeof window.closeSignalInfo,
+    removeSelectedSignal: typeof window.removeSelectedSignal
 });
 
     // Add event listeners

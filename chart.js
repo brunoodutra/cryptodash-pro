@@ -99,6 +99,8 @@ export function initializeLightweightChart() {
 
         // Initialize indicators manager
         state.indicatorsManager = new IndicatorsManager(state.lightweightChart);
+        
+
 
         window.addEventListener('resize', debounce(() => {
             if (state.lightweightChart) {

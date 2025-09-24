@@ -178,6 +178,9 @@ export function createRecommendationMarkers(recommendationHistory, candlestickDa
             return null;
         }
         
-        return { time: closestCandleTime, ...markerStyle };
+        return { 
+            time: closestCandleTime, 
+            ...markerStyle 
+        };
     }).filter(marker => marker !== null);
 }

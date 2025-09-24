@@ -11,6 +11,10 @@ export let state = {
     volumeSeries: null,
     recommendationHistory: [],
     candlestickData: [],
+    // Indicators Manager
+    indicatorsManager: null,
+    // Trading Signals Manager
+    tradingSignals: null,
     // Configuration state
     settings: {
         model: 'CNN',
@@ -30,5 +34,10 @@ export let state = {
         lineSeries: null,
         infoBox: null,
         isDragging: false
+    },
+    // Chart update control
+    chartUpdateControl: {
+        lastCandleTime: null,
+        lastRecommendationTime: null
     }
 };
