@@ -1,6 +1,7 @@
 import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { fetchCandlestickData, fetchRecommendationHistory } from './api.js';
+import { IndicatorsManager } from './indicators.js';
 import { createRecommendationMarkers, debounce, normalizeTimeToCandle, updateCandleData, formatCurrency } from './utils.js';
 import { showPage, loadCryptoRecommendation } from './ui.js';
 
@@ -96,6 +97,9 @@ export function initializeLightweightChart() {
             lastPriceData: null
         };
 
+        // Initialize indicators manager
+        state.indicatorsManager = new IndicatorsManager(state.lightweightChart);
+
         window.addEventListener('resize', debounce(() => {
             if (state.lightweightChart) {
                 state.lightweightChart.resize(chartContainer.clientWidth, chartContainer.clientHeight);
@@ -175,6 +179,12 @@ export async function loadLightweightChart(cryptoId) {
         // Add recommendation markers
         const markers = createRecommendationMarkers(recommendationHistory, candlestickData);
         state.candlestickSeries.setMarkers(markers);
+
+        // Update indicators if they are active
+        if (state.indicatorsManager) {
+            const { updateIndicators } = await import('./indicatorControls.js');
+            updateIndicators();
+        }
 
         // Update control timestamps
         if (candlestickData.length > 0) {
