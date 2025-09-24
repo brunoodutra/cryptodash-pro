@@ -43,11 +43,13 @@ window.toggleRuler = toggleRuler;
 window.showCryptoDetail = showCryptoDetail;
 window.showRulerInfo = showRulerInfo;
 window.clearRuler = clearRuler;
+window.showMarketExitPage = showMarketExitPage;
 
 // Debug: Verificar se as funções estão disponíveis globalmente
 console.log('🚀 Global functions check:', {
     home_dashboard: typeof window.home_dashboard,
-    toggleRuler: typeof window.toggleRuler
+    toggleRuler: typeof window.toggleRuler,
+    showMarketExitPage: typeof window.showMarketExitPage
 });
 
     // Add event listeners
