@@ -62,6 +62,7 @@ export async function fetchGlobalData() {
                 '$' + formatLargeNumber(data.data.total_volume.usd);
             const btcDominanceValue = data.data.market_cap_percentage.btc.toFixed(1);
             document.getElementById('btc-dominance').textContent = btcDominanceValue + '%';
+            state.btcDominance = btcDominanceValue; // Store in state
             
             // Update BTC dominance progress bar
             document.getElementById('btc-dominance-bar').style.width = btcDominanceValue + '%';
