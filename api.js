@@ -20,7 +20,13 @@ export async function fetchData(url, cacheKey = null, cacheDuration = 3000) {
     }
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'CryptoDash-Pro/1.0'
+            }
+        });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         
