@@ -218,6 +218,77 @@
                                 <button class="nav-btn nav-btn-sm" onclick="changeTimeframe('1w')" data-timeframe="1w">1W</button>
                             </div>
                         </div>
+                        <!-- Technical Indicators Controls -->
+                        <div class="indicators-controls mb-4">
+                            <!-- Moving Averages Panel -->
+                            <div class="indicator-panel">
+                                <button id="ma-toggle-btn" class="indicator-btn" onclick="toggleMAPanel()">
+                                    <i class="fas fa-chart-line mr-1"></i>
+                                    Médias Móveis
+                                    <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div id="ma-panel" class="ma-dropdown-panel" style="display: none;">
+                                    <div class="p-3 bg-gray-800 border border-gray-600 rounded-lg shadow-lg">
+                                        <div class="mb-3">
+                                            <label class="block text-sm font-medium mb-2">Tipo de Média:</label>
+                                            <div class="flex gap-2">
+                                                <label class="flex items-center">
+                                                    <input type="radio" name="ma-type" value="sma" class="mr-1" checked>
+                                                    <span class="text-sm">SMA</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="radio" name="ma-type" value="ema" class="mr-1">
+                                                    <span class="text-sm">EMA</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="block text-sm font-medium mb-2">Períodos:</label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" value="20" class="mr-1 ma-period-checkbox">
+                                                    <span class="text-sm">20</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" value="50" class="mr-1 ma-period-checkbox">
+                                                    <span class="text-sm">50</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" value="100" class="mr-1 ma-period-checkbox">
+                                                    <span class="text-sm">100</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" value="200" class="mr-1 ma-period-checkbox">
+                                                    <span class="text-sm">200</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="applyMASettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded text-sm">
+                                                Aplicar
+                                            </button>
+                                            <button onclick="clearAllMA()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded text-sm">
+                                                Limpar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Other Technical Indicators -->
+                            <button id="fibonacci-btn" class="indicator-btn" onclick="toggleFibonacci()">
+                                <i class="fas fa-wave-square mr-1"></i>Fibonacci
+                            </button>
+                            <button id="rsi-btn" class="indicator-btn" onclick="toggleRSI()">
+                                <i class="fas fa-chart-area mr-1"></i>RSI
+                            </button>
+                            <button id="macd-btn" class="indicator-btn" onclick="toggleMACD()">
+                                <i class="fas fa-signal mr-1"></i>MACD
+                            </button>
+                        </div>
+
+
+
                         <div class="chart-widget-container">
                             <div id="chart-container" style="height: 500px;"></div>
                         </div>
@@ -368,6 +439,7 @@
     <script type="module" src="utils.js"></script>
     <script type="module" src="api.js"></script>
     <script type="module" src="ui.js"></script>
+    <script type="module" src="indicatorControls.js"></script>
     <script type="module" src="chart.js"></script>
     <script type="module" src="script.js"></script>
 </body>

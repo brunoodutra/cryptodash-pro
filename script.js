@@ -4,6 +4,7 @@ import { fetchCryptoData, fetchFearGreedIndex, fetchGlobalData, fetchMarketExitD
 import { renderCryptoCards, showPage, toggleTheme, toggleViewMode, preloadRecommendations, showCryptoDetail } from './ui.js';
 import { changeCrypto, changeTimeframe, home_dashboard, loadLightweightChart, openSettings, resetSettings, saveSettings, toggleRuler, showRulerInfo, clearRuler } from './chart.js';
 import { renderMarketExitCard, showMarketExitPage } from './marketExit.js';
+import { toggleMAPanel, applyMASettings, clearAllMA, handlePeriodCheckboxChange, updateMAToggleButtonState, toggleMovingAverages, toggleFibonacci, toggleRSI, toggleMACD } from './indicatorControls.js';
 
 // Initialization
 document.addEventListener('DOMContentLoaded', function() {

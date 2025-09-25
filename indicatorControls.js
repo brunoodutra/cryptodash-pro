@@ -21,57 +21,61 @@ function toggleMAPanel() {
  * Aplica as configurações de médias móveis selecionadas
  */
 function applyMASettings() {
-    console.log('📊 Applying MA settings');
+    console.log('🔧 Applying MA settings...');
     
+    // Check if indicatorsManager is available
     if (!state.indicatorsManager) {
         console.error('❌ IndicatorsManager not initialized');
+        alert('Erro: Sistema de indicadores não inicializado. Tente recarregar a página.');
         return;
     }
-
-    // Get selected type (SMA or EMA)
-    const selectedType = document.querySelector('input[name="ma-type"]:checked');
-    if (!selectedType) {
+    
+    // Check if candlestick data is available
+    if (!state.candlestickData || state.candlestickData.length === 0) {
+        console.error('❌ No candlestick data available');
+        alert('Erro: Dados do gráfico não disponíveis. Selecione uma criptomoeda primeiro.');
+        return;
+    }
+    
+    // Get selected MA type
+    const maTypeRadio = document.querySelector('input[name="ma-type"]:checked');
+    if (!maTypeRadio) {
+        console.warn('⚠️ No MA type selected');
         alert('Por favor, selecione o tipo de média móvel (SMA ou EMA)');
         return;
     }
-
+    const maType = maTypeRadio.value;
+    
     // Get selected periods
     const selectedPeriods = [];
-    const checkboxes = document.querySelectorAll('.period-checkbox input[type="checkbox"]:checked');
+    const checkboxes = document.querySelectorAll('.ma-period-checkbox:checked');
     checkboxes.forEach(checkbox => {
         selectedPeriods.push(parseInt(checkbox.value));
     });
-
+    
     if (selectedPeriods.length === 0) {
-        alert('Por favor, selecione pelo menos um período');
+        console.warn('⚠️ No periods selected');
+        alert('Por favor, selecione pelo menos um período para a média móvel');
         return;
     }
-
-    const maType = selectedType.value; // 'sma' or 'ema'
     
-    // Apply each selected period
+    console.log(`📊 Applying ${maType.toUpperCase()} for periods:`, selectedPeriods);
+    
+    // Apply moving averages
     selectedPeriods.forEach(period => {
-        const id = `${maType}${period}`;
-        
+        const id = `${maType}_${period}`;
         try {
-            if (maType === 'sma') {
-                state.indicatorsManager.addMovingAverage(id, 'sma', period, state.candlestickData);
-            } else {
-                state.indicatorsManager.addMovingAverage(id, 'ema', period, state.candlestickData);
-            }
-            console.log(`✅ Added ${maType.toUpperCase()}(${period})`);
+            state.indicatorsManager.addMovingAverage(id, state.candlestickData, period, maType);
+            console.log(`✅ Applied ${maType.toUpperCase()}(${period})`);
         } catch (error) {
-            console.error(`❌ Error adding ${maType.toUpperCase()}(${period}):`, error);
+            console.error(`❌ Error applying ${maType.toUpperCase()}(${period}):`, error);
         }
     });
-
+    
     // Update button state
-    const toggleBtn = document.getElementById('ma-toggle-btn');
-    if (selectedPeriods.length > 0) {
-        toggleBtn.classList.add('active');
-    }
-
-    console.log('✅ MA settings applied');
+    updateMAToggleButtonState();
+    
+    console.log('✅ MA settings applied successfully');
 }
 
 /**
@@ -346,4 +350,12 @@ function updateIndicators() {
 }
 
 // Export functions for global access
+// Make functions globally available
+window.toggleMAPanel = toggleMAPanel;
+window.applyMASettings = applyMASettings;
+window.clearAllMA = clearAllMA;
+window.toggleFibonacci = toggleFibonacci;
+window.toggleRSI = toggleRSI;
+window.toggleMACD = toggleMACD;
+
 export { toggleMAPanel, applyMASettings, clearAllMA, handlePeriodCheckboxChange, updateMAToggleButtonState, toggleMovingAverages, toggleFibonacci, toggleRSI, toggleMACD, updateIndicators };
