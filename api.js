@@ -182,6 +182,27 @@ export async function fetchRecommendationHistory(crypto) {
 }
 
 /**
+ * Fetches a specific historical recommendation for a given cryptocurrency, date, and time.
+ * @param {string} crypto The cryptocurrency symbol (e.g., 'BTC').
+ * @param {string} date The date of the recommendation (e.g., '2025-06-12').
+ * @param {string} time The time of the recommendation (e.g., '20:00:00').
+ * @returns {Promise<any|null>} A promise that resolves to the specific recommendation data or null if an error occurs.
+ */
+export async function fetchSpecificRecommendation(crypto, date, time) {
+    try {
+        const encodedTime = encodeURIComponent(time);
+        const profile = state.settings.profile;
+        const url = `${CONFIG.apis.recommendations}/specific_recommendation?model_name=${state.settings.model}&crypto=${crypto}&date=${date}&time=${encodedTime}&profile=${profile}`;
+        // No caching for specific historical data as it's immutable
+        const data = await fetchData(url, null, 0);
+        return data;
+    } catch (error) {
+        console.error('Error fetching specific recommendation:', error);
+        return null;
+    }
+}
+
+/**
  * Fetches candlestick data for a given cryptocurrency from the Binance API.
  * @param {string} crypto The cryptocurrency symbol (e.g., 'BTC').
  * @param {string|null} interval The chart interval (e.g., '1h', '4h').

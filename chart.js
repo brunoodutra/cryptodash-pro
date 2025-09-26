@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { fetchCandlestickData, fetchRecommendationHistory } from './api.js';
 import { IndicatorsManager } from './indicators.js';
 import { createRecommendationMarkers, debounce, normalizeTimeToCandle, updateCandleData, formatCurrency } from './utils.js';
-import { showPage, loadCryptoRecommendation } from './ui.js';
+import { showPage, loadCryptoRecommendation, showRecommendationTooltip } from './ui.js';
 
 const darkThemeOptions = {
     chart: {
@@ -151,6 +151,8 @@ export async function loadLightweightChart(cryptoId) {
             fetchCandlestickData(config.symbol),
             fetchRecommendationHistory(config.symbol)
         ]);
+
+        console.log('DEBUG: Full recommendation history:', recommendationHistory);
 
         if (!candlestickData || !recommendationHistory) {
             console.error("Dados não encontrados");
@@ -551,9 +553,22 @@ export function clearRuler() {
  * Handles clicks on the chart, used for the ruler functionality.
  * @param {any} param The click event parameters from the chart library.
  */
-export function handleChartClick(param) {
+export async function handleChartClick(param) {
     console.log('📊 Chart clicked, ruler active:', state.ruler.active);
     console.log('📊 Click param:', param);
+
+    // Handle marker click first
+    if (param.hoveredObjectId !== undefined) {
+        const recommendation = state.recommendationHistory[param.hoveredObjectId];
+        if (recommendation) {
+            const chartContainer = document.getElementById('chart-container');
+            const rect = chartContainer.getBoundingClientRect();
+            const x = rect.left + param.point.x;
+            const y = rect.top + param.point.y;
+            showRecommendationTooltip(recommendation, x, y);
+        }
+        return; // Stop processing to avoid activating the ruler
+    }
     
     if (!state.ruler.active || !param.time || state.ruler.endPoint) {
         if (state.ruler.endPoint) console.log('📊 Ruler measurement already complete, ignoring click.');

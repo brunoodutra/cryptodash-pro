@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import { state } from './state.js';
-import { fetchRecommendation, fetchTargetStop, fetchData, fetchCryptoData} from './api.js';
+import { fetchRecommendation, fetchTargetStop, fetchData, fetchCryptoData, fetchSpecificRecommendation} from './api.js';
 import { loadLightweightChart} from './chart.js';
 import { formatCurrency, formatLargeNumber } from './utils.js';
 
@@ -505,6 +505,94 @@ export async function loadCryptoRecommendation(cryptoId) {
         `;
     }
 }
+
+/**
+ * Shows a tooltip with details about a specific recommendation on the chart.
+ * @param {object} recommendation The recommendation object from the history.
+ * @param {number} x The x-coordinate for the tooltip.
+ * @param {number} y The y-coordinate for the tooltip.
+ */
+export async function showRecommendationTooltip(recommendation, x, y) {
+    // Remove any existing tooltip
+    const existingTooltip = document.getElementById('recommendation-tooltip');
+    if (existingTooltip) {
+        existingTooltip.remove();
+    }
+
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.id = 'recommendation-tooltip';
+    tooltip.style.cssText = `
+        position: fixed;
+        left: ${x + 15}px;
+        top: ${y + 15}px;
+        background: rgba(45, 55, 72, 0.95);
+        border: 1px solid #4a5568;
+        border-radius: 8px;
+        padding: 12px;
+        color: white;
+        font-size: 12px;
+        min-width: 250px;
+        z-index: 1001;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        pointer-events: all;
+    `;
+
+    tooltip.innerHTML = '<div style="text-align: center;">Carregando detalhes...</div>';
+    document.body.appendChild(tooltip);
+
+    const cryptoSymbol = CONFIG.cryptos.find(c => c.id === state.currentCrypto)?.symbol;
+    if (!cryptoSymbol) {
+        tooltip.innerHTML = 'Erro: Cripto não encontrada.';
+        return;
+    }
+
+    // Fetch the specific historical recommendation details
+    const specificData = await fetchSpecificRecommendation(cryptoSymbol, recommendation.Date, recommendation.Time);
+
+    const recType = recommendation.recommendation.toLowerCase();
+    const isAction = recType.includes('buy') || recType.includes('sell') || recType.includes('compra') || recType.includes('venda');
+    const recDate = new Date(`${recommendation.Date}T${recommendation.Time}Z`).toLocaleString('pt-BR');
+
+    let content = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-weight: bold; color: #63b3ed;">Detalhes do Sinal Histórico</div>
+            <button id="close-tooltip-btn" style="background: #e53e3e; border: none; color: white; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">×</button>
+        </div>
+        <div><strong>Sinal:</strong> <span style="color: ${isAction && (recType.includes('buy') || recType.includes('compra')) ? '#10b981' : '#ef4444'};">${recommendation.recommendation}</span></div>
+        <div><strong>Data:</strong> ${recDate}</div>
+    `;
+
+    if (specificData) {
+        const confidence = (specificData.percentage * 100).toFixed(2);
+        content += `
+            <hr style="border-color: #4a5568; margin: 8px 0;">
+            <div><strong>Confiança:</strong> ${confidence}%</div>
+            <div><strong>Target:</strong> ${formatCurrency(specificData.target)}</div>
+            <div><strong>Stop Loss:</strong> ${formatCurrency(specificData.stop_loss)}</div>
+        `;
+    } else {
+        content += '<div style="margin-top: 8px; color: #f85149;">Não foi possível carregar os detalhes históricos.</div>';
+    }
+
+    tooltip.innerHTML = content;
+
+    // Add close functionality
+    document.getElementById('close-tooltip-btn').onclick = () => {
+        tooltip.remove();
+    };
+    
+    // Reposition if it goes off-screen
+    const rect = tooltip.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+        tooltip.style.left = `${window.innerWidth - rect.width - 15}px`;
+    }
+    if (rect.bottom > window.innerHeight) {
+        tooltip.style.top = `${window.innerHeight - rect.height - 15}px`;
+    }
+}
+
 
 /**
  * Updates the Market Exit card with new data.

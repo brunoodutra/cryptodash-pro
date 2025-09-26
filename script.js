@@ -59,10 +59,6 @@ window.toggleMovingAverages = toggleMovingAverages;
 window.toggleFibonacci = toggleFibonacci;
 window.toggleRSI = toggleRSI;
 window.toggleMACD = toggleMACD;
-window.generateTradingSignals = generateTradingSignals;
-window.clearTradingSignals = clearTradingSignals;
-window.closeSignalInfo = closeSignalInfo;
-window.removeSelectedSignal = removeSelectedSignal;
 
 // Debug: Verificar se as funções estão disponíveis globalmente
 console.log('🔧 Functions available globally:', {
@@ -79,10 +75,6 @@ console.log('🔧 Functions available globally:', {
     toggleFibonacci: typeof window.toggleFibonacci,
     toggleRSI: typeof window.toggleRSI,
     toggleMACD: typeof window.toggleMACD,
-    generateTradingSignals: typeof window.generateTradingSignals,
-    clearTradingSignals: typeof window.clearTradingSignals,
-    closeSignalInfo: typeof window.closeSignalInfo,
-    removeSelectedSignal: typeof window.removeSelectedSignal
 });
 
     // Add event listeners

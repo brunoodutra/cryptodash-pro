@@ -164,7 +164,7 @@ export function createRecommendationMarkers(recommendationHistory, candlestickDa
                 color: '#10b981', 
                 shape: 'arrowUp', 
                 text: 'Buy', 
-                size: isLast ? 1.2 : 0.8 
+                size: isLast ? 1.8 : 1.2
             };
         } else if (rec.recommendation === 'Sell' || rec.recommendation === 'Venda') {
             markerStyle = { 
@@ -172,13 +172,14 @@ export function createRecommendationMarkers(recommendationHistory, candlestickDa
                 color: '#ef4444', 
                 shape: 'arrowDown', 
                 text: 'Sell', 
-                size: isLast ? 1.2 : 0.8 
+                size: isLast ? 1.8 : 1.2
             };
         } else {
             return null;
         }
         
         return { 
+            id: index,
             time: closestCandleTime, 
             ...markerStyle 
         };
