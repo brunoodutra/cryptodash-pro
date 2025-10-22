@@ -596,6 +596,127 @@ body {
     background: #dc2626;
 }
 
+/* Recommendation Info Panel */
+.recommendation-info-panel {
+    position: fixed;
+    background: rgba(45, 55, 72, 0.95);
+    border: 1px solid rgba(74, 85, 104, 0.8);
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 320px;
+    max-width: 420px;
+    z-index: 1001;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    animation: fadeInScale 0.2s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.recommendation-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(74, 85, 104, 0.5);
+}
+
+.recommendation-info-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recommendation-type {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+.recommendation-type.buy {
+    background-color: #10b981;
+}
+
+.recommendation-type.sell {
+    background-color: #ef4444;
+}
+
+.recommendation-crypto {
+    font-size: 16px;
+    font-weight: bold;
+    color: #e2e8f0;
+}
+
+.recommendation-info-close {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.recommendation-info-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.recommendation-info-content {
+    color: #cbd5e0;
+}
+
+.recommendation-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.recommendation-info-row .label {
+    font-weight: 500;
+    color: #a0aec0;
+    font-size: 14px;
+}
+
+.recommendation-info-row .value {
+    font-weight: bold;
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.recommendation-info-row .value.confidence {
+    color: #fbbf24;
+}
+
+.recommendation-info-row .value.target {
+    color: #10b981;
+}
+
+.recommendation-info-row .value.stop-loss {
+    color: #ef4444;
+}
+
 /* Trading Signals Controls */
 .trading-signals-controls {
     display: flex;
