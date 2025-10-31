@@ -142,9 +142,10 @@ function updateProfile(profile) {
 }
 
 function closeSettings() {
-    const modal = document.getElementById('settings-modal');
+    const modal = document.getElementById("settings-modal");
     if (modal) {
-        modal.classList.add('hidden');
+        modal.classList.add("hidden");
+        modal.style.display = "none";
     }
 }
 
@@ -168,3 +169,5 @@ async function renderMarketExitCardComponent() {
         });
     }
 }
+
+
