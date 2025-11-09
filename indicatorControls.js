@@ -1,4 +1,4 @@
-﻿import { state } from './state.js';
+import { state } from './state.js';
 
 /**
  * Toggle Moving Averages Panel visibility
@@ -79,52 +79,11 @@ function applyMASettings() {
 }
 
 /**
- * Manipula mudanÃ§as nos checkboxes de perÃ­odo para toggle individual
+ * Manipula mudanças nos checkboxes de período sem aplicar imediatamente.
+ * Apenas atualiza o estado visual; a aplicação ocorre ao clicar em "Aplicar".
  */
 function handlePeriodCheckboxChange(event) {
-    const checkbox = event.target;
-    const period = parseInt(checkbox.value);
-    const isChecked = checkbox.checked;
-    
-    if (!state.indicatorsManager) {
-        console.error('âŒ IndicatorsManager not initialized');
-        return;
-    }
-
-    // Get selected MA type
-    const selectedType = document.querySelector('input[name="ma-type"]:checked');
-    if (!selectedType) {
-        console.warn('âš ï¸ No MA type selected');
-        return;
-    }
-
-    const maType = selectedType.value;
-    const id = `${maType}${period}`;
-
-    if (isChecked) {
-        // Add the moving average
-        try {
-            if (maType === 'sma') {
-                state.indicatorsManager.addMovingAverage(id, state.candlestickData, period, 'sma');
-            } else {
-                state.indicatorsManager.addMovingAverage(id, state.candlestickData, period, 'ema');
-            }
-            console.log(`âœ… Added ${maType.toUpperCase()}(${period})`);
-        } catch (error) {
-            console.error(`âŒ Error adding ${maType.toUpperCase()}(${period}):`, error);
-            checkbox.checked = false; // Revert checkbox state on error
-        }
-    } else {
-        // Remove the moving average
-        try {
-            state.indicatorsManager.removeIndicator(id);
-            console.log(`âœ… Removed ${maType.toUpperCase()}(${period})`);
-        } catch (error) {
-            console.error(`âŒ Error removing ${maType.toUpperCase()}(${period}):`, error);
-        }
-    }
-
-    // Update main toggle button state
+    // Não adiciona nem remove indicadores aqui
     updateMAToggleButtonState();
 }
 
