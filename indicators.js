@@ -333,6 +333,22 @@ export class IndicatorsManager {
      */
     addMovingAverage(id, data, period, type = 'sma') {
         console.log(`🔵 Adding Moving Average: ${id}, type: ${type}, period: ${period}, data length: ${data.length}`);
+
+        // Evitar duplicatas: remover série existente por id ou aninhada por tipo/período
+        try {
+            const existingById = this.indicators[id];
+            if (existingById && existingById.series) {
+                this.chart.removeSeries(existingById.series);
+                delete this.indicators[id];
+            }
+        } catch (_) {}
+
+        try {
+            if (this.indicators[type] && this.indicators[type][period]) {
+                this.chart.removeSeries(this.indicators[type][period]);
+                delete this.indicators[type][period];
+            }
+        } catch (_) {}
         
         if (!data || data.length === 0) {
             console.error('❌ No data provided for moving average');

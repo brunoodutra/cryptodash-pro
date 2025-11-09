@@ -46,6 +46,16 @@ function applyMASettings() {
     }
     const maType = maTypeRadio.value;
     
+    // Prevenir duplicatas: remover quaisquer MAs existentes do tipo selecionado
+    try { state.indicatorsManager.removeMovingAverages(maType); } catch (_) {}
+    try {
+        Object.keys(state.indicatorsManager.indicators).forEach(key => {
+            if (key.startsWith(maType) && /^\d+$/.test(key.slice(maType.length))) {
+                try { state.indicatorsManager.removeIndicator(key); } catch (_) {}
+            }
+        });
+    } catch (_) {}
+    
     // Get selected periods
     const selectedPeriods = [];
     const checkboxes = document.querySelectorAll('.period-checkbox input[type="checkbox"]:checked');
