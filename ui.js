@@ -2,7 +2,7 @@ import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { fetchRecommendation, fetchTargetStop, fetchData, fetchCryptoData, fetchSpecificRecommendation} from './api.js';
 import { loadLightweightChart} from './chart.js';
-import { formatCurrency, formatLargeNumber } from './utils.js';
+import { formatCurrency, formatLargeNumber, getIconUrls, setImageWithFallback } from './utils.js';
 
 
 
@@ -34,7 +34,7 @@ export function renderCryptoCards(cryptoData) {
         card.innerHTML = `
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
-                    <img data-src="${crypto.image}" alt="${crypto.name}" class="lazy w-12 h-12 rounded-full">
+                    <img data-src="${getIconUrls(crypto.symbol).local}" data-fallback="${getIconUrls(crypto.symbol).remote}" alt="${crypto.name}" class="lazy w-12 h-12 rounded-full">
                     <div>
                         <h3 class="text-lg font-bold">${crypto.name}</h3>
                         <p class="text-gray-400">${crypto.symbol.toUpperCase()}</p>
@@ -137,7 +137,7 @@ function renderListInChunks(data, container) {
             row.innerHTML = `
                 <div class="crypto-col-crypto">
                     <div class="flex items-center space-x-3">
-                        <img data-src="${crypto.image}" alt="${crypto.name}" class="lazy w-8 h-8 rounded-full">
+                        <img data-src="${getIconUrls(crypto.symbol).local}" data-fallback="${getIconUrls(crypto.symbol).remote}" alt="${crypto.name}" class="lazy w-8 h-8 rounded-full">
                         <div>
                             <div class="font-bold">${crypto.name}</div>
                             <div class="text-sm text-gray-400">${crypto.symbol.toUpperCase()}</div>
@@ -413,8 +413,8 @@ export async function showCryptoDetail(cryptoId) {
             document.getElementById('crypto-name').textContent = config.name;
             document.getElementById('crypto-symbol').textContent = config.symbol.toUpperCase();
             
-            //document.getElementById('crypto-image').src = `https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.17.0/svg/color/${config.symbol.toLowerCase()}.svg`,
-            document.getElementById('crypto-image').src = `https://raw.githubusercontent.com/Cryptofonts/cryptoicons/refs/heads/master/SVG/${config.symbol.toLowerCase()}.svg`,
+            // Definir ícone local com fallback remoto
+            setImageWithFallback(document.getElementById('crypto-image'), config.symbol);
             document.getElementById('crypto-price').textContent = formatCurrency(current_price);
 
             const changeElement = document.getElementById('crypto-change');
@@ -789,6 +789,13 @@ function lazyLoadImages() {
             entries.forEach(function(entry) {
                 if (entry.isIntersecting) {
                     let lazyImage = entry.target;
+                    // Attach one-time fallback handler if provided
+                    if (lazyImage.dataset.fallback) {
+                        lazyImage.onerror = function() {
+                            lazyImage.onerror = null;
+                            lazyImage.src = lazyImage.dataset.fallback;
+                        };
+                    }
                     lazyImage.src = lazyImage.dataset.src;
                     lazyImage.classList.remove("lazy");
                     lazyImageObserver.unobserve(lazyImage);
@@ -802,6 +809,12 @@ function lazyLoadImages() {
     } else {
         // Fallback for browsers that don't support IntersectionObserver
         lazyImages.forEach(function(lazyImage) {
+            if (lazyImage.dataset.fallback) {
+                lazyImage.onerror = function() {
+                    lazyImage.onerror = null;
+                    lazyImage.src = lazyImage.dataset.fallback;
+                };
+            }
             lazyImage.src = lazyImage.dataset.src;
         });
     }

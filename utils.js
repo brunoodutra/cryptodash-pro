@@ -185,3 +185,34 @@ export function createRecommendationMarkers(recommendationHistory, candlestickDa
         };
     }).filter(marker => marker !== null);
 }
+
+/**
+ * Returns local and remote icon URLs for a given crypto symbol.
+ * Prefer local `assets/icons` path; remote is the fallback source.
+ * @param {string} symbol The cryptocurrency symbol (e.g., 'BTC').
+ * @returns {{ local: string, remote: string }} Object with local and remote icon URLs.
+ */
+export function getIconUrls(symbol) {
+    const lower = String(symbol || '').toLowerCase();
+    return {
+        local: `assets/icons/${lower}.svg`,
+        remote: `https://raw.githubusercontent.com/Cryptofonts/cryptoicons/refs/heads/master/SVG/${lower}.svg`
+    };
+}
+
+/**
+ * Sets an image element `src` to the local icon and falls back to remote URL on error.
+ * It attaches a one-time error handler to avoid infinite loops if the remote also fails.
+ * @param {HTMLImageElement} imgEl The target image element.
+ * @param {string} symbol The cryptocurrency symbol (e.g., 'BTC').
+ */
+export function setImageWithFallback(imgEl, symbol) {
+    if (!imgEl) return;
+    const { local, remote } = getIconUrls(symbol);
+    const onErr = () => {
+        imgEl.onerror = null;
+        imgEl.src = remote;
+    };
+    imgEl.onerror = onErr;
+    imgEl.src = local;
+}

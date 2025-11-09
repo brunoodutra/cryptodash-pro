@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { fetchData } from './api.js';
 import { loadLightweightChart } from './chart.js';
 import { loadCryptoRecommendation, showPage } from './ui.js';
-import { formatCurrency, formatLargeNumber } from './utils.js';
+import { formatCurrency, formatLargeNumber, setImageWithFallback } from './utils.js';
 
 /**
  * Shows the detailed view for a specific cryptocurrency.
@@ -35,7 +35,8 @@ export async function showCryptoDetail(cryptoId) {
             document.getElementById('crypto-name').textContent = config.name;
             document.getElementById('crypto-symbol').textContent = config.symbol.toUpperCase();
             
-            document.getElementById('crypto-image').src = `https://raw.githubusercontent.com/Cryptofonts/cryptoicons/refs/heads/master/SVG/${config.symbol.toLowerCase()}.svg`;
+            // Ícone local com fallback remoto
+            setImageWithFallback(document.getElementById('crypto-image'), config.symbol);
             document.getElementById('crypto-price').textContent = formatCurrency(current_price);
 
             const changeElement = document.getElementById('crypto-change');
