@@ -1,4 +1,4 @@
-import { state } from './state.js';
+﻿import { state } from './state.js';
 
 /**
  * Toggle Moving Averages Panel visibility
@@ -18,68 +18,68 @@ function toggleMAPanel() {
 }
 
 /**
- * Aplica as configurações de médias móveis selecionadas
+ * Aplica as configuraÃ§Ãµes de mÃ©dias mÃ³veis selecionadas
  */
 function applyMASettings() {
-    console.log('🔧 Applying MA settings...');
+    console.log('ðŸ”§ Applying MA settings...');
     
     // Check if indicatorsManager is available
     if (!state.indicatorsManager) {
-        console.error('❌ IndicatorsManager not initialized');
-        alert('Erro: Sistema de indicadores não inicializado. Tente recarregar a página.');
+        console.error('âŒ IndicatorsManager not initialized');
+        alert('Erro: Sistema de indicadores nÃ£o inicializado. Tente recarregar a pÃ¡gina.');
         return;
     }
     
     // Check if candlestick data is available
     if (!state.candlestickData || state.candlestickData.length === 0) {
-        console.error('❌ No candlestick data available');
-        alert('Erro: Dados do gráfico não disponíveis. Selecione uma criptomoeda primeiro.');
+        console.error('âŒ No candlestick data available');
+        alert('Erro: Dados do grÃ¡fico nÃ£o disponÃ­veis. Selecione uma criptomoeda primeiro.');
         return;
     }
     
     // Get selected MA type
     const maTypeRadio = document.querySelector('input[name="ma-type"]:checked');
     if (!maTypeRadio) {
-        console.warn('⚠️ No MA type selected');
-        alert('Por favor, selecione o tipo de média móvel (SMA ou EMA)');
+        console.warn('âš ï¸ No MA type selected');
+        alert('Por favor, selecione o tipo de mÃ©dia mÃ³vel (SMA ou EMA)');
         return;
     }
     const maType = maTypeRadio.value;
     
     // Get selected periods
     const selectedPeriods = [];
-    const checkboxes = document.querySelectorAll('.ma-period-checkbox:checked');
+    const checkboxes = document.querySelectorAll('.period-checkbox input[type="checkbox"]:checked');
     checkboxes.forEach(checkbox => {
         selectedPeriods.push(parseInt(checkbox.value));
     });
     
     if (selectedPeriods.length === 0) {
-        console.warn('⚠️ No periods selected');
-        alert('Por favor, selecione pelo menos um período para a média móvel');
+        console.warn('âš ï¸ No periods selected');
+        alert('Por favor, selecione pelo menos um perÃ­odo para a mÃ©dia mÃ³vel');
         return;
     }
     
-    console.log(`📊 Applying ${maType.toUpperCase()} for periods:`, selectedPeriods);
+    console.log(`ðŸ“Š Applying ${maType.toUpperCase()} for periods:`, selectedPeriods);
     
     // Apply moving averages
     selectedPeriods.forEach(period => {
-        const id = `${maType}_${period}`;
+        const id = `${maType}${period}`;
         try {
             state.indicatorsManager.addMovingAverage(id, state.candlestickData, period, maType);
-            console.log(`✅ Applied ${maType.toUpperCase()}(${period})`);
+            console.log(`âœ… Applied ${maType.toUpperCase()}(${period})`);
         } catch (error) {
-            console.error(`❌ Error applying ${maType.toUpperCase()}(${period}):`, error);
+            console.error(`âŒ Error applying ${maType.toUpperCase()}(${period}):`, error);
         }
     });
     
     // Update button state
     updateMAToggleButtonState();
     
-    console.log('✅ MA settings applied successfully');
+    console.log('âœ… MA settings applied successfully');
 }
 
 /**
- * Manipula mudanças nos checkboxes de período para toggle individual
+ * Manipula mudanÃ§as nos checkboxes de perÃ­odo para toggle individual
  */
 function handlePeriodCheckboxChange(event) {
     const checkbox = event.target;
@@ -87,14 +87,14 @@ function handlePeriodCheckboxChange(event) {
     const isChecked = checkbox.checked;
     
     if (!state.indicatorsManager) {
-        console.error('❌ IndicatorsManager not initialized');
+        console.error('âŒ IndicatorsManager not initialized');
         return;
     }
 
     // Get selected MA type
     const selectedType = document.querySelector('input[name="ma-type"]:checked');
     if (!selectedType) {
-        console.warn('⚠️ No MA type selected');
+        console.warn('âš ï¸ No MA type selected');
         return;
     }
 
@@ -105,22 +105,22 @@ function handlePeriodCheckboxChange(event) {
         // Add the moving average
         try {
             if (maType === 'sma') {
-                state.indicatorsManager.addMovingAverage(id, 'sma', period, state.candlestickData);
+                state.indicatorsManager.addMovingAverage(id, state.candlestickData, period, 'sma');
             } else {
-                state.indicatorsManager.addMovingAverage(id, 'ema', period, state.candlestickData);
+                state.indicatorsManager.addMovingAverage(id, state.candlestickData, period, 'ema');
             }
-            console.log(`✅ Added ${maType.toUpperCase()}(${period})`);
+            console.log(`âœ… Added ${maType.toUpperCase()}(${period})`);
         } catch (error) {
-            console.error(`❌ Error adding ${maType.toUpperCase()}(${period}):`, error);
+            console.error(`âŒ Error adding ${maType.toUpperCase()}(${period}):`, error);
             checkbox.checked = false; // Revert checkbox state on error
         }
     } else {
         // Remove the moving average
         try {
             state.indicatorsManager.removeIndicator(id);
-            console.log(`✅ Removed ${maType.toUpperCase()}(${period})`);
+            console.log(`âœ… Removed ${maType.toUpperCase()}(${period})`);
         } catch (error) {
-            console.error(`❌ Error removing ${maType.toUpperCase()}(${period}):`, error);
+            console.error(`âŒ Error removing ${maType.toUpperCase()}(${period}):`, error);
         }
     }
 
@@ -129,7 +129,7 @@ function handlePeriodCheckboxChange(event) {
 }
 
 /**
- * Atualiza o estado do botão principal de MA baseado nos checkboxes ativos
+ * Atualiza o estado do botÃ£o principal de MA baseado nos checkboxes ativos
  */
 function updateMAToggleButtonState() {
     const toggleBtn = document.getElementById('ma-toggle-btn');
@@ -146,10 +146,10 @@ function updateMAToggleButtonState() {
  * Clear all Moving Averages
  */
 function clearAllMA() {
-    console.log('🧹 Clearing all Moving Averages');
+    console.log('ðŸ§¹ Clearing all Moving Averages');
     
     if (!state.indicatorsManager) {
-        console.error('❌ IndicatorsManager not initialized');
+        console.error('âŒ IndicatorsManager not initialized');
         return;
     }
 
@@ -178,25 +178,25 @@ function clearAllMA() {
         checkbox.checked = false;
     });
 
-    console.log('✅ All Moving Averages cleared');
+    console.log('âœ… All Moving Averages cleared');
 }
 
 /**
  * Legacy function for backward compatibility
  */
 function toggleMovingAverages() {
-    console.log('⚠️ Using legacy toggleMovingAverages - consider using new MA panel');
+    console.log('âš ï¸ Using legacy toggleMovingAverages - consider using new MA panel');
     
     const button = document.getElementById('ma-btn');
     if (!button) {
-        console.warn('⚠️ Legacy MA button not found');
+        console.warn('âš ï¸ Legacy MA button not found');
         return;
     }
     
     const isActive = button.classList.contains('active');
     
     if (!state.indicatorsManager) {
-        console.error('❌ IndicatorsManager not initialized');
+        console.error('âŒ IndicatorsManager not initialized');
         return;
     }
     
@@ -205,16 +205,16 @@ function toggleMovingAverages() {
         state.indicatorsManager.removeIndicator('sma20');
         state.indicatorsManager.removeIndicator('sma50');
         button.classList.remove('active');
-        console.log('🔴 Moving Averages disabled');
+        console.log('ðŸ”´ Moving Averages disabled');
     } else {
         // Add moving averages
         if (state.candlestickData && state.candlestickData.length > 0) {
             state.indicatorsManager.addMovingAverage('sma20', state.candlestickData, 20, 'sma');
             state.indicatorsManager.addMovingAverage('sma50', state.candlestickData, 50, 'sma');
             button.classList.add('active');
-            console.log('🟢 Moving Averages enabled');
+            console.log('ðŸŸ¢ Moving Averages enabled');
         } else {
-            console.warn('⚠️ No candlestick data available for Moving Averages');
+            console.warn('âš ï¸ No candlestick data available for Moving Averages');
         }
     }
 }
@@ -223,13 +223,13 @@ function toggleMovingAverages() {
  * Toggle do Fibonacci
  */
 function toggleFibonacci() {
-    console.log('🔄 Toggling Fibonacci');
+    console.log('ðŸ”„ Toggling Fibonacci');
     
     const button = document.getElementById('fib-btn');
     const isActive = button.classList.contains('active');
     
     if (!state.indicatorsManager) {
-        console.error('❌ IndicatorsManager not initialized');
+        console.error('âŒ IndicatorsManager not initialized');
         return;
     }
     
@@ -237,15 +237,15 @@ function toggleFibonacci() {
         // Remover Fibonacci
         state.indicatorsManager.removeIndicator('fibonacci');
         button.classList.remove('active');
-        console.log('🔴 Fibonacci disabled');
+        console.log('ðŸ”´ Fibonacci disabled');
     } else {
         // Adicionar Fibonacci
         if (state.candlestickData && state.candlestickData.length > 0) {
             state.indicatorsManager.addFibonacci('fibonacci', state.candlestickData);
             button.classList.add('active');
-            console.log('🟢 Fibonacci enabled');
+            console.log('ðŸŸ¢ Fibonacci enabled');
         } else {
-            console.warn('⚠️ No candlestick data available for Fibonacci');
+            console.warn('âš ï¸ No candlestick data available for Fibonacci');
         }
     }
 }
@@ -254,13 +254,13 @@ function toggleFibonacci() {
  * Toggle do RSI
  */
 function toggleRSI() {
-    console.log('🔄 Toggling RSI');
+    console.log('ðŸ”„ Toggling RSI');
     
     const button = document.getElementById('rsi-btn');
     const isActive = button.classList.contains('active');
     
     if (!state.indicatorsManager) {
-        console.error('❌ IndicatorsManager not initialized');
+        console.error('âŒ IndicatorsManager not initialized');
         return;
     }
     
@@ -268,15 +268,15 @@ function toggleRSI() {
         // Remover RSI
         state.indicatorsManager.removeIndicator('rsi');
         button.classList.remove('active');
-        console.log('🔴 RSI disabled');
+        console.log('ðŸ”´ RSI disabled');
     } else {
         // Adicionar RSI
         if (state.candlestickData && state.candlestickData.length > 0) {
             state.indicatorsManager.addRSI('rsi', state.candlestickData);
             button.classList.add('active');
-            console.log('🟢 RSI enabled');
+            console.log('ðŸŸ¢ RSI enabled');
         } else {
-            console.warn('⚠️ No candlestick data available for RSI');
+            console.warn('âš ï¸ No candlestick data available for RSI');
         }
     }
 }
@@ -285,13 +285,13 @@ function toggleRSI() {
  * Toggle do MACD
  */
 function toggleMACD() {
-    console.log('🔄 Toggling MACD');
+    console.log('ðŸ”„ Toggling MACD');
     
     const button = document.getElementById('macd-btn');
     const isActive = button.classList.contains('active');
     
     if (!state.indicatorsManager) {
-        console.error('❌ IndicatorsManager not initialized');
+        console.error('âŒ IndicatorsManager not initialized');
         return;
     }
     
@@ -299,31 +299,31 @@ function toggleMACD() {
         // Remover MACD
         state.indicatorsManager.removeIndicator('macd');
         button.classList.remove('active');
-        console.log('🔴 MACD disabled');
+        console.log('ðŸ”´ MACD disabled');
     } else {
         // Adicionar MACD
         if (state.candlestickData && state.candlestickData.length > 0) {
             state.indicatorsManager.addMACD('macd', state.candlestickData);
             button.classList.add('active');
-            console.log('🟢 MACD enabled');
+            console.log('ðŸŸ¢ MACD enabled');
         } else {
-            console.warn('⚠️ No candlestick data available for MACD');
+            console.warn('âš ï¸ No candlestick data available for MACD');
         }
     }
 }
 
 /**
- * Atualiza todos os indicadores ativos quando os dados do gráfico mudam
+ * Atualiza todos os indicadores ativos quando os dados do grÃ¡fico mudam
  */
 function updateIndicators() {
-    console.log('🔄 Updating active indicators');
+    console.log('ðŸ”„ Updating active indicators');
     
     if (!state.indicatorsManager || !state.candlestickData) {
-        console.warn('⚠️ IndicatorsManager or candlestick data not available');
+        console.warn('âš ï¸ IndicatorsManager or candlestick data not available');
         return;
     }
     
-    // Verificar quais indicadores estão ativos e atualizá-los
+    // Verificar quais indicadores estÃ£o ativos e atualizÃ¡-los
     const maBtn = document.getElementById('ma-btn');
     const fibBtn = document.getElementById('fib-btn');
     const rsiBtn = document.getElementById('rsi-btn');
@@ -346,7 +346,7 @@ function updateIndicators() {
         state.indicatorsManager.updateMACD('macd', state.candlestickData);
     }
     
-    console.log('✅ Indicators updated');
+    console.log('âœ… Indicators updated');
 }
 
 // Export functions for global access

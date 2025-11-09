@@ -384,62 +384,21 @@ export class IndicatorsManager {
      * @param {string} type - Tipo ('sma' ou 'ema')
      */
     updateMovingAverage(id, data, period, type = 'sma') {
-        if (this.indicators[type][id]) {
-            let maData;
-            if (type === 'sma') {
-                maData = calculateSMA(data, period);
-            } else {
-                maData = calculateEMA(data, period);
-            }
-            
-            if (maData && maData.length > 0) {
-                this.indicators[type][id].setData(maData);
-                console.log(`🔄 ${type.toUpperCase()}(${period}) updated`);
-            }
-        }
+    const maData = type === 'sma' ? calculateSMA(data, period) : calculateEMA(data, period);
+    if (!maData || maData.length === 0) return;
+
+    if (this.indicators[id] && this.indicators[id].series) {
+        this.indicators[id].series.setData(maData);
+        console.log('MA updated [id]', type, period);
+        return;
     }
-    
-    /**
-     * Adiciona níveis de Fibonacci
-     * @param {string} id - ID único do indicador
-     * @param {Array} data - Dados de candlestick
-     */
-    addFibonacci(id, data) {
-        console.log('📊 Adding Fibonacci retracement:', id);
-        
-        const fibLevels = calculateFibonacci(data);
-        
-        if (fibLevels && fibLevels.length > 0) {
-            const fibSeries = [];
-            
-            fibLevels.forEach((level, index) => {
-                const series = this.chart.addLineSeries({
-                    color: '#6b7280',
-                    lineWidth: 1,
-                    lineStyle: 1, // Dashed line
-                    title: `Fib ${(level.level * 100).toFixed(1)}%`
-                });
-                
-                series.setData([
-                    { time: data[0].time, value: level.price },
-                    { time: data[data.length - 1].time, value: level.price }
-                ]);
-                
-                fibSeries.push(series);
-            });
-            
-            this.indicators.fibonacci = fibSeries;
-            console.log(`✅ Fibonacci added with ${fibLevels.length} levels`);
-        } else {
-            console.warn('⚠️ No Fibonacci data calculated');
-        }
+
+    const nested = this.indicators[type] && this.indicators[type][period];
+    if (nested) {
+        nested.setData(maData);
+        console.log('MA updated [nested]', type, period);
     }
-    
-    /**
-     * Atualiza níveis de Fibonacci
-     * @param {string} id - ID único do indicador
-     * @param {Array} data - Dados de candlestick
-     */
+}
     updateFibonacci(id, data) {
         if (this.indicators.fibonacci) {
             this.removeIndicator('fibonacci');
@@ -580,44 +539,45 @@ export class IndicatorsManager {
      * @param {string} type - Tipo do indicador
      */
     removeIndicator(type) {
-        console.log(`🗑️ Removing ${type} indicator`);
-        
-        if (type === 'sma20' || type === 'sma50') {
-            if (this.indicators.sma[type]) {
-                this.chart.removeSeries(this.indicators.sma[type]);
-                delete this.indicators.sma[type];
-            }
-        } else if (type === 'ema12' || type === 'ema26') {
-            if (this.indicators.ema[type]) {
-                this.chart.removeSeries(this.indicators.ema[type]);
-                delete this.indicators.ema[type];
-            }
-        } else if (type === 'fibonacci') {
-            if (this.indicators.fibonacci && Array.isArray(this.indicators.fibonacci)) {
-                this.indicators.fibonacci.forEach(series => this.chart.removeSeries(series));
-                this.indicators.fibonacci = null;
-            }
-        } else if (type === 'rsi') {
-            if (this.indicators.rsi) {
-                this.chart.removeSeries(this.indicators.rsi);
-                this.indicators.rsi = null;
-            }
-        } else if (type === 'macd') {
-            if (this.indicators.macd) {
-                this.chart.removeSeries(this.indicators.macd.macd);
-                this.chart.removeSeries(this.indicators.macd.signal);
-                this.chart.removeSeries(this.indicators.macd.histogram);
-                this.indicators.macd = null;
-            }
+    console.log(`??? Removing ${type} indicator`);
+
+    // Handle moving averages by id (e.g., 'sma20', 'ema50')
+    if (type.startsWith('sma') || type.startsWith('ema')) {
+        const direct = this.indicators[type];
+        if (direct && direct.series) {
+            this.chart.removeSeries(direct.series);
+            delete this.indicators[type];
+            return;
+        }
+        const maType = type.startsWith('sma') ? 'sma' : 'ema';
+        const periodStr = type.slice(maType.length);
+        const period = parseInt(periodStr);
+        if (!isNaN(period) && this.indicators[maType] && this.indicators[maType][period]) {
+            this.chart.removeSeries(this.indicators[maType][period]);
+            delete this.indicators[maType][period];
+            return;
         }
     }
-    
-    /**
-     * Toggle de médias móveis
-     * @param {string} type - Tipo de média
-     * @param {number} period - Período da média
-     * @param {Array} data - Dados de candlestick
-     */
+
+    if (type === 'fibonacci') {
+        if (this.indicators.fibonacci && Array.isArray(this.indicators.fibonacci)) {
+            this.indicators.fibonacci.forEach(series => this.chart.removeSeries(series));
+            this.indicators.fibonacci = null;
+        }
+    } else if (type === 'rsi') {
+        if (this.indicators.rsi) {
+            this.chart.removeSeries(this.indicators.rsi);
+            this.indicators.rsi = null;
+        }
+    } else if (type === 'macd') {
+        if (this.indicators.macd) {
+            this.chart.removeSeries(this.indicators.macd.macd);
+            this.chart.removeSeries(this.indicators.macd.signal);
+            this.chart.removeSeries(this.indicators.macd.histogram);
+            this.indicators.macd = null;
+        }
+    }
+}
     toggleMovingAverage(type, period, data) {
         const config = this.config.movingAverages[type];
         const periodIndex = config.periods.indexOf(period);
@@ -732,3 +692,11 @@ export const IndicatorUtils = {
         return macdValue > signalValue ? '#10b981' : '#ef4444';
     }
 };
+
+
+
+
+
+
+
+
