@@ -102,42 +102,40 @@ function updateMAToggleButtonState() {
 }
 
 /**
- * Clear all Moving Averages
+ * Limpa todas as médias móveis do gráfico e reseta o painel.
+ * Remove MAs adicionadas pelos dois modos: aninhadas (toggle) e por ID (ex.: 'sma20').
  */
 function clearAllMA() {
-    console.log('ðŸ§¹ Clearing all Moving Averages');
-    
+    console.log('🧹 Clearing all Moving Averages');
+
     if (!state.indicatorsManager) {
-        console.error('âŒ IndicatorsManager not initialized');
+        console.error('❌ IndicatorsManager not initialized');
         return;
     }
 
-    // Common MA periods and types to clear
-    const periodsToCheck = [10, 20, 50, 100, 200];
-    const typesToCheck = ['sma', 'ema'];
+    const manager = state.indicatorsManager;
 
-    typesToCheck.forEach(type => {
-        periodsToCheck.forEach(period => {
-            const id = `${type}${period}`;
-            try {
-                state.indicatorsManager.removeIndicator(id);
-            } catch (error) {
-                // Silently ignore if indicator doesn't exist
+    // 1) Remover MAs aninhadas (armazenadas em indicators.sma/indicators.ema)
+    try { manager.removeMovingAverages('sma'); } catch (_) {}
+    try { manager.removeMovingAverages('ema'); } catch (_) {}
+
+    // 2) Remover MAs adicionadas por ID (ex.: 'sma20', 'ema50')
+    try {
+        Object.keys(manager.indicators).forEach(key => {
+            if (/^(sma|ema)\d+$/.test(key)) {
+                try { manager.removeIndicator(key); } catch (_) {}
             }
         });
-    });
+    } catch (_) {}
 
-    // Update button state
+    // 3) Resetar estado visual do botão e checkboxes
     const toggleBtn = document.getElementById('ma-toggle-btn');
-    toggleBtn.classList.remove('active');
+    if (toggleBtn) toggleBtn.classList.remove('active');
 
-    // Uncheck all checkboxes
     const checkboxes = document.querySelectorAll('.period-checkbox input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = false;
-    });
+    checkboxes.forEach(checkbox => { checkbox.checked = false; });
 
-    console.log('âœ… All Moving Averages cleared');
+    console.log('✅ All Moving Averages cleared');
 }
 
 /**
