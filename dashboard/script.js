@@ -5,11 +5,28 @@ import { renderCryptoCards, showPage, toggleTheme, toggleViewMode, preloadRecomm
 import { changeCrypto, changeTimeframe, home_dashboard, loadLightweightChart, openSettings, resetSettings, saveSettings, toggleRuler, showRulerInfo, clearRuler } from './chart.js';
 import { renderMarketExitCard, showMarketExitPage } from './marketExit.js';
 import { toggleMAPanel, applyMASettings, clearAllMA, handlePeriodCheckboxChange, updateMAToggleButtonState, toggleMovingAverages, toggleFibonacci, toggleRSI, toggleMACD } from './indicatorControls.js';
+import { initAuth, wireAuthUI, requireAuthThenNavigate } from './auth.js';
+import { loadUserSettings } from './userSettings.js';
+import { refreshAlerts, wireAlertsUI } from './alerts.js';
 
 // Initialization
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Load settings from storage
     loadSettingsFromStorage();
+
+    await initAuth();
+    wireAuthUI();
+    wireDemoUnlockUI();
+    updateDemoLockUI();
+    await hydrateSettingsFromUser();
+    await refreshAlerts();
+    wireAlertsUI();
+    window.addEventListener('auth:changed', async () => {
+        await hydrateSettingsFromUser();
+        await refreshAlerts();
+        updateDemoLockUI();
+        fetchCryptoData();
+    });
     
     // Initialize data fetching
     fetchGlobalData();
@@ -79,8 +96,8 @@ console.log('🔧 Functions available globally:', {
 
     // Add event listeners
     document.getElementById('nav-dashboard').addEventListener('click', () => home_dashboard());
-    document.getElementById('nav-portfolio').addEventListener('click', () => showPage('portfolio'));
-    document.getElementById('nav-alerts').addEventListener('click', () => showPage('alerts'));
+    document.getElementById('nav-portfolio').addEventListener('click', () => requireAuthThenNavigate('portfolio'));
+    document.getElementById('nav-alerts').addEventListener('click', () => requireAuthThenNavigate('alerts'));
     document.getElementById('investmentProfile').addEventListener('change', (e) => updateProfile(e.target.value));
     document.getElementById('open-settings-btn').addEventListener('click', () => openSettings());
     document.getElementById('theme-toggle-btn').addEventListener('click', () => toggleTheme());
@@ -98,6 +115,21 @@ console.log('🔧 Functions available globally:', {
     document.getElementById('reset-settings-btn').addEventListener('click', () => resetSettings());
 });
 
+function updateDemoLockUI() {
+    const banner = document.getElementById('demo-lock-banner');
+    if (!banner) return;
+    banner.style.display = state.auth?.user ? 'none' : 'block';
+}
+
+function wireDemoUnlockUI() {
+    const btn = document.getElementById('demo-unlock-btn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        state.auth.redirectTo = 'dashboard';
+        showPage('auth');
+    });
+}
+
 function loadSettingsFromStorage() {
     const saved = localStorage.getItem('cryptoDashboardSettings');
     if (saved) {
@@ -108,6 +140,21 @@ function loadSettingsFromStorage() {
         } catch (error) {
             console.error('Error loading settings from storage:', error);
         }
+    }
+}
+
+async function hydrateSettingsFromUser() {
+    try {
+        const loaded = await loadUserSettings();
+        if (loaded) {
+            localStorage.setItem('cryptoDashboardSettings', JSON.stringify(state.settings));
+            const profileSelect = document.getElementById('investmentProfile');
+            if (profileSelect) profileSelect.value = state.settings.profile;
+            document.querySelectorAll('[data-timeframe]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-timeframe="${state.settings.timeframe}"]`)?.classList.add('active');
+        }
+    } catch (error) {
+        console.error('Falha ao carregar configurações do usuário:', error);
     }
 }
 

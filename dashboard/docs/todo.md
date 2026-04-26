@@ -13,7 +13,7 @@ Dashboard avançado de criptomoedas com **Market Exit Indicator** - um sistema i
   - 🟡 Amarelo (34-66): Risco moderado
   - 🔴 Vermelho (67-100): Alto risco de saída
 - **Indicador de Tendência:** Mostra se o score está subindo/descendo
-- **Análise de Sentimento IA:** Sistema mockado com dados realistas
+- **Análise de Sentimento IA:** Planejado (a implementar)
 
 ### 📊 8 Indicadores Técnicos
 
@@ -23,7 +23,7 @@ Dashboard avançado de criptomoedas com **Market Exit Indicator** - um sistema i
 
 2. **MVRV Z-Score** (20%)
    - Relação entre valor de mercado e valor realizado
-   - Calculado com dados de preço mockados realisticamente
+   - Calculado a partir de dados públicos; pode ficar indisponível se APIs falharem
 
 3. **Fear & Greed Index** (10%)
    - Índice de medo e ganância do mercado
@@ -31,15 +31,15 @@ Dashboard avançado de criptomoedas com **Market Exit Indicator** - um sistema i
 
 4. **Pi Cycle Top Indicator** (15%)
    - Cruzamento de médias móveis 111 e 350
-   - Mockado com base em distância entre linhas
+   - Calculado a partir de dados públicos; pode ficar indisponível se APIs falharem
 
 5. **Puell Multiple** (10%)
    - Múltiplo de receita de mineração
-   - Dados mockados baseados em ranges históricos
+   - Calculado por aproximação a partir de dados públicos; pode ficar indisponível se APIs falharem
 
 6. **NUPL - Net Unrealized P&L** (10%)
    - Lucro/prejuízo não realizado da rede
-   - Valores mockados entre -0.2 e 1.0
+   - Calculado por aproximação a partir de dados públicos; pode ficar indisponível se APIs falharem
 
 7. **RSI 22-Day** (10%)
    - Índice de força relativa de 22 dias
@@ -47,7 +47,7 @@ Dashboard avançado de criptomoedas com **Market Exit Indicator** - um sistema i
 
 8. **Rainbow Chart** (10%)
    - Posição nas bandas logarítmicas de preço
-   - Mockado baseado em faixas de preço do Bitcoin
+   - Calculado a partir de dados públicos; pode ficar indisponível se APIs falharem
 
 dicas de aplicação :
 
@@ -90,7 +90,7 @@ async calculateMVRVZScore() {
         console.error('Error fetching real MVRV:', error);
     }
     
-    // Fallback para dados mockados
-    return this.fallbackMVRVZScore();
+    // Se falhar, marque como indisponível
+    return { value: null, score: null, source: 'Indisponível' };
 }
 ```

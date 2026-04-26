@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Criptomoedas - Versão Profissional</title>
+    
+    <!-- External CSS Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- External JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 border-b border-gray-700 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-4">
+                    <a class="text-2xl font-bold" href="/">
+                        <i class="fas fa-chart-line mr-2 text-blue-400"></i>
+                        CryptoDash Pro
+                    </a>
+                    <div class="flex space-x-2">
+                        <button class="nav-btn active" onclick="home_dashboard()" id="nav-dashboard">
+                <i class="fas fa-home mr-2"></i>Dashboard
+            </button>
+                        <button class="nav-btn" id="nav-portfolio">
+                            <i class="fas fa-briefcase mr-2"></i>Portfolio
+                        </button>
+                        <button class="nav-btn" id="nav-alerts">
+                            <i class="fas fa-bell mr-2"></i>Alertas
+                            <span class="alert-badge" id="alert-count" style="display: none;">0</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <select class="profile-selector" id="investmentProfile">
+                        <option value="moderate">Moderate</option>
+                        <option value="conservative">Conservative</option>
+                        <option value="aggressive">Aggressive</option>
+                    </select>
+                    <button class="nav-btn" id="open-settings-btn">
+                        <i class="fas fa-cog mr-2"></i>Configurações
+                    </button>
+                    <button class="nav-btn" id="theme-toggle-btn">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <span id="auth-user-label" class="text-sm text-gray-300"></span>
+                    <button class="nav-btn" id="auth-login-btn" type="button">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Entrar
+                    </button>
+                    <button class="nav-btn" id="auth-logout-btn" type="button" style="display: none;">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="page-view active">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Market Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Market Cap + Volume Global (Juntos) -->
+                <div class="crypto-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-300">Mercado Global</h3>
+                            <p class="text-xl font-bold" id="global-market-cap">
+                                <span class="loading"></span>
+                            </p>
+                            <p class="text-sm text-gray-400">Market Cap</p>
+                        </div>
+                        <i class="fas fa-globe text-blue-400 text-2xl"></i>
+                    </div>
+                    <div class="border-t border-gray-700 pt-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-lg font-bold text-green-400" id="global-volume">
+                                    <span class="loading"></span>
+                                </p>
+                                <p class="text-sm text-gray-400">Volume 24h</p>
+                            </div>
+                            <i class="fas fa-chart-bar text-green-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fear & Greed Card (Movido para segunda posição) -->
+                <div class="crypto-card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-300">Fear & Greed</h3>
+                            <p class="text-2xl font-bold" id="fear-greed-value">
+                                <span class="loading"></span>
+                            </p>
+                        </div>
+                        <div class="gauge-container">
+                            <svg width="200" height="120" viewBox="0 0 200 120">
+                                <path class="gauge-bg" d="M 30 90 A 70 70 0 0 1 170 90"></path>
+                                <path class="gauge-fill" id="gauge-fill" d="M 30 90 A 70 70 0 0 1 170 90" stroke-dasharray="0 220"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold" id="fear-greed-number">--</div>
+                                    <div class="text-sm text-gray-400" id="fear-greed-label">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="crypto-card p-6">
+                    <div class="flex flex-col">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-300">Dominância BTC</h3>
+                            <i class="fab fa-bitcoin text-yellow-400 text-2xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold" id="btc-dominance">
+                            <span class="loading"></span>
+                        </p>
+                        <div class="mt-2 w-full bg-gray-700 rounded-full h-3">
+                            
+                            <div class="bg-yellow-400 h-3 rounded-full" id="btc-dominance-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1" id="alt-season-indicator"></div>
+                    </div>
+                </div>
+                <!-- Market Exit Indicator (Movido para quarta posição) -->
+                <div id="market-exit-card-container">
+                    <!-- Card será populado pelo JavaScript -->
+                </div>
+            </div>
+
+            <!-- Crypto Cards -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Principais Criptomoedas</h2>
+                    <button id="view-toggle-btn" class="nav-btn">
+                        <i class="fas fa-list mr-2"></i>Lista
+                    </button>
+                </div>
+                <div id="demo-lock-banner" class="crypto-card p-4 mb-4" style="display: none;">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <div class="font-semibold">Modo demonstração</div>
+                            <div class="text-sm text-gray-400">Sem cadastro você vê apenas o BTC. Faça login/cadastro para liberar as demais criptos.</div>
+                        </div>
+                        <button class="nav-btn" id="demo-unlock-btn" type="button">
+                            <i class="fas fa-user-plus mr-2"></i>Fazer cadastro
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="crypto-cards">
+                    <!-- Cards will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Crypto Page -->
+    <div id="crypto-page" class="page-view">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <button class="nav-btn" id="back-to-dashboard-btn" onclick="home_dashboard()">
+                    <i class="fas fa-arrow-left mr-2"></i>Voltar
+                </button>
+                <select class="crypto-selector" id="crypto-selector" onchange="changeCrypto(this.value)">
+                    <option value="bitcoin">Bitcoin (BTC)</option>
+                    <option value="ethereum">Ethereum (ETH)</option>
+                    <option value="ripple">XRP (XRP)</option>
+                    <option value="solana">Solana (SOL)</option>
+                    <option value="cardano">Cardano (ADA)</option>
+                </select>
+                <h2 class="text-3xl font-bold" id="crypto-title">Bitcoin</h2>
+            </div>           
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Crypto Info -->
+                <div class="lg:col-span-1">
+                    <div class="crypto-card p-6 mb-6">
+                        <div class="text-center mb-4">
+                            <img id="crypto-image" src="" alt="" class="w-16 h-16 mx-auto mb-2 rounded-full">
+                            <h3 class="text-2xl font-bold" id="crypto-name">Bitcoin</h3>
+                            <p class="text-gray-400" id="crypto-symbol">BTC</p>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Preço:</span>
+                                <span class="font-bold" id="crypto-price">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Variação 24h:</span>
+                                <span class="font-bold" id="crypto-change">0.00%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Volume 24h:</span>
+                                <span class="font-bold" id="crypto-volume">$0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Market Cap:</span>
+                                <span class="font-bold" id="crypto-market-cap">$0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation Card -->
+                    <div class="crypto-card p-6" id="recommendation-card">
+                        <h4 class="text-lg font-semibold mb-3">
+                            <i class="fas fa-robot mr-2"></i>Recomendação IA
+                        </h4>
+                        <div id="recommendation-content">
+                            <span class="loading"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LightweightCharts Chart -->
+                <div class="lg:col-span-2">
+                    <div class="chart-container">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-lg font-semibold">Gráfico de Preço com Recomendações IA</h4>
+                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                                <!-- Timeframe Buttons -->
+                                <div class="flex space-x-2" id="timeframe-buttons">
+                                    <button id="ruler-btn" class="nav-btn nav-btn-sm">
+                                    <i class="fas fa-ruler mr-1"></i>Régua
+                                </button>
+                                    <button class="nav-btn nav-btn-sm" onclick="changeTimeframe('1h')" data-timeframe="1h">1H</button>
+                                    <button class="nav-btn-sm nav-btn active" onclick="changeTimeframe('4h')" data-timeframe="4h">4H</button>
+                                    <button class="nav-btn nav-btn-sm" onclick="changeTimeframe('1d')" data-timeframe="1d">1D</button>
+                                    <button class="nav-btn nav-btn-sm" onclick="changeTimeframe('1w')" data-timeframe="1w">1W</button>
+                                </div>
+                                
+                                <!-- Technical Indicators Controls -->
+                                <div class="flex space-x-2" id="indicators-controls">
+                                    <!-- Moving Averages Panel -->
+                                    <div class="relative">
+                                        <button id="ma-toggle-btn" class="nav-btn nav-btn-sm indicator-btn" onclick="toggleMAPanel()">
+                                            <i class="fas fa-chart-line mr-1"></i>MA
+                                            <span class="dropdown-arrow">▼</span>
+                                        </button>
+                                        <div id="ma-panel" class="ma-dropdown-panel" style="display: none;">
+                                            <div class="ma-type-selector">
+                                                <label>
+                                                    <input type="radio" name="ma-type" value="sma" checked> SMA
+                                                </label>
+                                                <label>
+                                                    <input type="radio" name="ma-type" value="ema"> EMA
+                                                </label>
+                                            </div>
+                                            <div class="ma-periods">
+                                                <label class="period-checkbox">
+                                                    <input type="checkbox" value="10" onchange="handlePeriodCheckboxChange(event)"> MA(10)
+                                                </label>
+                                                <label class="period-checkbox">
+                                                    <input type="checkbox" value="20" onchange="handlePeriodCheckboxChange(event)"> MA(20)
+                                                </label>
+                                                <label class="period-checkbox">
+                                                    <input type="checkbox" value="50" onchange="handlePeriodCheckboxChange(event)"> MA(50)
+                                                </label>
+                                                <label class="period-checkbox">
+                                                    <input type="checkbox" value="100" onchange="handlePeriodCheckboxChange(event)"> MA(100)
+                                                </label>
+                                                <label class="period-checkbox">
+                                                    <input type="checkbox" value="200" onchange="handlePeriodCheckboxChange(event)"> MA(200)
+                                                </label>
+                                            </div>
+                                            <div class="ma-actions">
+                                                <button onclick="applyMASettings()" class="apply-btn">Aplicar</button>
+                                                <button onclick="clearAllMA()" class="clear-btn">Limpar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="relative">
+                                        <button id="fib-btn" class="nav-btn nav-btn-sm indicator-btn" onclick="toggleFibonacci()">
+                                            <i class="fas fa-wave-square mr-1"></i>Fib
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button id="rsi-btn" class="nav-btn nav-btn-sm indicator-btn" onclick="toggleRSI()">
+                                            <i class="fas fa-signal mr-1"></i>RSI
+                                        </button>
+                                    </div>
+                                    <div class="relative">
+                                        <button id="macd-btn" class="nav-btn nav-btn-sm indicator-btn" onclick="toggleMACD()">
+                                            <i class="fas fa-chart-area mr-1"></i>MACD
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-widget-container">
+                            <div id="chart-container" style="height: 500px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Page -->
+    <div id="portfolio-page" class="page-view">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">Portfolio Simulado</h2>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-400">Saldo:</span>
+                    <span class="text-2xl font-bold text-green-400" id="portfolio-balance">$10,000.00</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="crypto-card p-6">
+                    <h3 class="text-xl font-semibold mb-4">Suas Posições</h3>
+                    <div id="portfolio-positions">
+                        <p class="text-gray-400 text-center py-8">Nenhuma posição aberta</p>
+                    </div>
+                </div>
+
+                <div class="crypto-card p-6">
+                    <h3 class="text-xl font-semibold mb-4">Histórico de Transações</h3>
+                    <div id="transaction-history">
+                        <p class="text-gray-400 text-center py-8">Nenhuma transação realizada</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Page -->
+    <div id="alerts-page" class="page-view">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">Gerenciar Alertas</h2>
+                <button class="nav-btn" id="create-alert-btn">
+                    <i class="fas fa-plus mr-2"></i>Criar Alerta
+                </button>
+            </div>
+
+            <div class="crypto-card p-6">
+                <h3 class="text-xl font-semibold mb-4">Seus Alertas</h3>
+                <div id="alerts-list">
+                    <p class="text-gray-400 text-center py-8">Nenhum alerta configurado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Page -->
+    <div id="auth-page" class="page-view">
+        <div class="container mx-auto px-4 py-10">
+            <div class="max-w-md mx-auto crypto-card p-6">
+                <h2 class="text-2xl font-bold mb-2" id="auth-title">Entrar</h2>
+                <p class="text-sm text-gray-400 mb-6">Crie sua conta grátis para salvar preferências e alertas.</p>
+
+                <div class="flex space-x-2 mb-5">
+                    <button class="nav-btn active flex-1" id="auth-tab-login" type="button">Entrar</button>
+                    <button class="nav-btn flex-1" id="auth-tab-signup" type="button">Criar conta</button>
+                </div>
+
+                <form id="auth-form" class="space-y-4">
+                    <input type="hidden" id="auth-mode" value="login">
+
+                    <div id="auth-name-row" style="display: none;">
+                        <label class="block text-sm font-medium mb-2">Nome</label>
+                        <input id="auth-name" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" autocomplete="name">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Email</label>
+                        <input id="auth-email" type="email" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" autocomplete="email" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Senha</label>
+                        <input id="auth-password" type="password" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" autocomplete="current-password" required>
+                        <div class="text-right mt-2">
+                            <a href="#" id="auth-reset-link" class="text-sm text-blue-400 hover:underline">Esqueci minha senha</a>
+                        </div>
+                    </div>
+
+                    <div class="items-center space-x-2" id="auth-terms-row" style="display: none;">
+                        <input type="checkbox" id="auth-terms">
+                        <label for="auth-terms" class="text-sm text-gray-300">
+                            Eu aceito os <a class="text-blue-400 hover:underline" href="/terms.html" target="_blank" rel="noopener">Termos</a> e a <a class="text-blue-400 hover:underline" href="/privacy.html" target="_blank" rel="noopener">Privacidade</a>
+                        </label>
+                    </div>
+
+                    <div id="auth-status" class="text-sm text-gray-300"></div>
+
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded" id="auth-submit-btn" type="submit">
+                        Entrar
+                    </button>
+                </form>
+
+                <div id="supabase-config-panel" class="mt-6 p-4 bg-gray-900 border border-gray-700 rounded" style="display: none;">
+                    <div class="font-semibold mb-3">Configurar Supabase</div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Project URL</label>
+                            <input id="supabase-url" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" placeholder="https://xxxxx.supabase.co">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Anon public key</label>
+                            <input id="supabase-anon-key" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" placeholder="eyJ...">
+                            <div class="text-xs text-gray-400 mt-2">Use Settings → API → anon. Não use sb_secret_.</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="supabase-config-save" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded" type="button">Salvar</button>
+                            <button id="supabase-config-clear" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded" type="button">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="supabase.local.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script type="module" src="script.js"></script>
+
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Configurações</h3>
+                    <button id="close-settings-btn" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Modelo de Previsão</label>
+                        <select id="settings-model" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                            <option value="CNN">CNN</option>
+                            <option value="LSTM">LSTM</option>
+                            <option value="GRU">GRU</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Timeframe Padrão</label>
+                        <select id="settings-timeframe" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                            <option value="1h">1 Hora</option>
+                            <option value="4h">4 Horas (IA)</option>
+                            <option value="1d">1 Dia</option>
+                            <option value="1w">1 Semana</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Número de Candles (Gráfico)</label>
+                        <select id="settings-candles" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="500">500</option>
+                            <option value="1000">1000</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Intervalo de Atualização</label>
+                        <select id="settings-update-interval" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                            <option value="10">10 segundos</option>
+                            <option value="30">30 segundos</option>
+                            <option value="60">1 minuto</option>
+                            <option value="300">5 minutos</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Perfil de Recomendação</label>
+                        <select id="settings-profile" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                            <option value="conservative">Conservative</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="aggressive">Aggressive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="settings-sound" class="mr-2">
+                        <label for="settings-sound" class="text-sm font-medium">Notificações Sonoras</label>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 mt-6">
+                    <button id="save-settings-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                        Salvar
+                    </button>
+                    <button id="reset-settings-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded">
+                        Resetar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="alert-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Criar Alerta</h3>
+                    <button id="close-alert-btn" class="text-gray-400 hover:text-white" type="button">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form id="alert-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Cripto</label>
+                        <select id="alert-crypto" class="w-full p-2 bg-gray-700 border border-gray-600 rounded"></select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Condição</label>
+                        <select id="alert-operator" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                            <option value="gte">Maior ou igual</option>
+                            <option value="lte">Menor ou igual</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Preço-alvo (USDT)</label>
+                        <input id="alert-price" type="number" step="0.00000001" class="w-full p-2 bg-gray-700 border border-gray-600 rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Observação (opcional)</label>
+                        <input id="alert-note" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="alert-enabled" checked>
+                        <label for="alert-enabled" class="text-sm font-medium">Ativo</label>
+                    </div>
+
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded" type="submit">
+                        Salvar alerta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- End of modal -->
+    
+    <!-- Closing tags -->
+    </body>
+    </html>

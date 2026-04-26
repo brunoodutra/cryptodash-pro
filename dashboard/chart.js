@@ -4,6 +4,7 @@ import { fetchCandlestickData, fetchRecommendationHistory } from './api.js';
 import { IndicatorsManager } from './indicators.js';
 import { createRecommendationMarkers, debounce, normalizeTimeToCandle, updateCandleData, formatCurrency } from './utils.js';
 import { showPage, loadCryptoRecommendation, showRecommendationTooltip } from './ui.js';
+import { saveUserSettings } from './userSettings.js';
 
 const darkThemeOptions = {
     chart: {
@@ -1048,7 +1049,7 @@ function loadSettingsValues() {
 /**
  * Saves settings from the modal.
  */
-export function saveSettings() {
+export async function saveSettings() {
     const newSettings = {
         model: document.getElementById('settings-model')?.value || state.settings.model,
         timeframe: document.getElementById('settings-timeframe')?.value || state.settings.timeframe,
@@ -1063,6 +1064,12 @@ export function saveSettings() {
     
     // Save to localStorage
     localStorage.setItem('cryptoDashboardSettings', JSON.stringify(state.settings));
+
+    try {
+        await saveUserSettings(state.settings);
+    } catch (error) {
+        console.error('Falha ao salvar configurações no backend:', error);
+    }
     
     // Update active timeframe button
     document.querySelectorAll('[data-timeframe]').forEach(btn => {
@@ -1095,7 +1102,7 @@ function closeSettings() {
 /**
  * Resets settings to default values.
  */
-export function resetSettings() {
+export async function resetSettings() {
     const defaultSettings = {
         model: 'CNN',
         timeframe: '4h',
@@ -1107,6 +1114,11 @@ export function resetSettings() {
     
     Object.assign(state.settings, defaultSettings);
     localStorage.setItem('cryptoDashboardSettings', JSON.stringify(state.settings));
+    try {
+        await saveUserSettings(state.settings);
+    } catch (error) {
+        console.error('Falha ao salvar configurações no backend:', error);
+    }
     loadSettingsValues();
     showNotification('Configurações resetadas para os valores padrão!', 'info');
 }

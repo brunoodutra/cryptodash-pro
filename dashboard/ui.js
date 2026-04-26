@@ -4,6 +4,16 @@ import { fetchRecommendation, fetchTargetStop, fetchData, fetchCryptoData, fetch
 import { loadLightweightChart} from './chart.js';
 import { formatCurrency, formatLargeNumber, getIconUrls, setImageWithFallback } from './utils.js';
 
+function isCryptoLocked(cryptoId) {
+    if (state.auth?.user) return false;
+    return cryptoId !== 'bitcoin';
+}
+
+function goToAuthForUnlock() {
+    state.auth.redirectTo = 'dashboard';
+    showPage('auth');
+}
+
 
 
 /**
@@ -24,14 +34,27 @@ export function renderCryptoCards(cryptoData) {
     cryptoData.forEach(crypto => {
         const config = CONFIG.cryptos.find(c => c.id === crypto.id);
         if (!config) return;
+
+        const locked = isCryptoLocked(crypto.id);
         
         const changeClass = crypto.price_change_percentage_24h >= 0 ? 'price-positive' : 'price-negative';
         
         const card = document.createElement('div');
-        card.className = 'crypto-card p-6 relative';
-        card.onclick = () => showCryptoDetail(crypto.id);
+        card.className = `crypto-card p-6 relative${locked ? ' locked' : ''}`;
+        card.onclick = () => locked ? goToAuthForUnlock() : showCryptoDetail(crypto.id);
+
+        const recommendationBlock = locked
+            ? `<div class="mt-4 text-sm text-gray-300">Faça login/cadastro para ver recomendação, target e stop.</div>`
+            : `
+                <div class="mt-4" id="recommendation-${crypto.id}">
+                    <div class="flex items-center space-x-2">
+                        <span class="loading"></span>
+                        <span class="text-sm text-gray-400">Carregando recomendação...</span>
+                    </div>
+                </div>
+            `;
         
-        card.innerHTML = `
+        const cardContent = `
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
                     <img data-src="${getIconUrls(crypto.symbol).local}" data-fallback="${getIconUrls(crypto.symbol).remote}" alt="${crypto.name}" class="lazy w-12 h-12 rounded-full">
@@ -58,19 +81,25 @@ export function renderCryptoCards(cryptoData) {
                     <span>$${formatLargeNumber(crypto.total_volume)}</span>
                 </div>
             </div>
-            
-            <div class="mt-4" id="recommendation-${crypto.id}">
-                <div class="flex items-center space-x-2">
-                    <span class="loading"></span>
-                    <span class="text-sm text-gray-400">Carregando recomendação...</span>
-                </div>
-            </div>
+            ${recommendationBlock}
         `;
+
+        card.innerHTML = locked
+            ? `
+                <div class="locked-blur">${cardContent}</div>
+                <div class="locked-overlay">
+                    <div>
+                        <div class="locked-title">Conteúdo bloqueado</div>
+                        <div class="locked-subtitle">Cadastre-se para liberar todas as criptos.</div>
+                    </div>
+                </div>
+            `
+            : cardContent;
         
         container.appendChild(card);
         
         // Load recommendation
-        loadRecommendationForCard(crypto);
+        if (!locked) loadRecommendationForCard(crypto);
     });
 
     lazyLoadImages();
@@ -128,13 +157,14 @@ function renderListInChunks(data, container) {
             const config = CONFIG.cryptos.find(c => c.id === crypto.id);
             if (!config) continue;
 
+            const locked = isCryptoLocked(crypto.id);
             const changeClass = crypto.price_change_percentage_24h >= 0 ? 'price-positive' : 'price-negative';
             
             const row = document.createElement('div');
-            row.className = 'crypto-list-row';
-            row.onclick = () => showCryptoDetail(crypto.id);
+            row.className = `crypto-list-row${locked ? ' locked' : ''}`;
+            row.onclick = () => locked ? goToAuthForUnlock() : showCryptoDetail(crypto.id);
 
-            row.innerHTML = `
+            const rowContent = `
                 <div class="crypto-col-crypto">
                     <div class="flex items-center space-x-3">
                         <img data-src="${getIconUrls(crypto.symbol).local}" data-fallback="${getIconUrls(crypto.symbol).remote}" alt="${crypto.name}" class="lazy w-8 h-8 rounded-full">
@@ -155,17 +185,27 @@ function renderListInChunks(data, container) {
                 <div class="crypto-col-volume">
                     $${formatLargeNumber(crypto.total_volume)}
                 </div>
-                <div class="crypto-col-target" id="target-${crypto.id}">--</div>
-                <div class="crypto-col-stop" id="stop-${crypto.id}">--</div>
-                <div class="crypto-col-recommendation" id="rec-${crypto.id}">
-                    <span class="loading-small"></span>
-                </div>
+                <div class="crypto-col-target"${locked ? '' : ` id="target-${crypto.id}"`}>--</div>
+                <div class="crypto-col-stop"${locked ? '' : ` id="stop-${crypto.id}"`}>--</div>
+                <div class="crypto-col-recommendation"${locked ? '' : ` id="rec-${crypto.id}"`}>${locked ? '<span class="text-gray-400">Login para ver</span>' : '<span class="loading-small"></span>'}</div>
                 <div class="crypto-col-actions">
                     <button class="btn-details">
                         Ver Detalhes
                     </button>
                 </div>
             `;
+
+            row.innerHTML = locked
+                ? `
+                    <div class="locked-blur">${rowContent}</div>
+                    <div class="locked-overlay">
+                        <div>
+                            <div class="locked-title">Bloqueado</div>
+                            <div class="locked-subtitle">Faça cadastro para liberar.</div>
+                        </div>
+                    </div>
+                `
+                : rowContent;
             fragment.appendChild(row);
         }
 
@@ -178,7 +218,7 @@ function renderListInChunks(data, container) {
         } else {
             // All chunks rendered, now trigger secondary loads
             data.forEach(crypto => {
-                if (CONFIG.cryptos.some(c => c.id === crypto.id)) {
+                if (CONFIG.cryptos.some(c => c.id === crypto.id) && !isCryptoLocked(crypto.id)) {
                     loadRecommendationForListOptimized(crypto);
                 }
             });

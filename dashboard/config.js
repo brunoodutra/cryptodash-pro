@@ -1,3 +1,18 @@
+function getRecommendationsBase() {
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get('recommendationsBase');
+    if (fromQuery) return fromQuery;
+
+    const fromStorage = window.localStorage.getItem('recommendationsBase');
+    if (fromStorage) return fromStorage;
+
+    const host = window.location.hostname;
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local');
+    if (isLocal) return 'http://127.0.0.1:8000';
+
+    return '/api/reco';
+}
+
 export const CONFIG = {
     cryptos: [
         { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', binanceSymbol: 'BTCUSDT', color: '#f7931a' },
@@ -10,7 +25,7 @@ export const CONFIG = {
         binance: 'https://api.binance.com/api/v3',
         coingecko: 'https://api.coingecko.com/api/v3',
         fearGreed: 'https://api.alternative.me/fng/',
-        recommendations: 'http://192.168.15.13:8000'
+        recommendations: getRecommendationsBase()
     },
     updateIntervals: {
         prices: 30000, // 30s

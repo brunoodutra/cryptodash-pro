@@ -9,6 +9,10 @@ import { state } from './state.js';
 import { fetchData } from './api.js';
 import { formatLargeNumber, formatCurrency } from './utils.js';
 
+function unavailableIndicator(description = 'Dados indisponíveis') {
+    return { value: null, score: null, trend: 'unknown', description };
+}
+
 // Configuração dos indicadores e seus pesos
 const INDICATORS_CONFIG = {
     bitcoinDominance: { weight: 0.15, name: 'Bitcoin Dominance' },
@@ -307,17 +311,7 @@ async function fetchMVRVZScore() {
         };
     } catch (error) {
         console.error('Erro ao buscar MVRV Z-Score:', error);
-        // Fallback para dados mockados em caso de erro
-        const mockZScore = 2.3 + (Math.random() - 0.5) * 2;
-        let score = mockZScore >= 7 ? 95 : mockZScore >= 5 ? 85 : mockZScore >= 3 ? 70 : mockZScore >= 1 ? 50 : mockZScore >= 0 ? 30 : 15;
-        const trend = mockZScore > 2.5 ? 'up' : 'down';
-        
-        return {
-            value: mockZScore.toFixed(2),
-            score: score,
-            trend: trend,
-            description: `Z-Score de ${mockZScore.toFixed(2)} (mockado)`
-        };
+        return unavailableIndicator();
     }
 }
 
@@ -413,18 +407,7 @@ async function fetchPiCycleIndicator() {
         };
     } catch (error) {
         console.error('Erro ao buscar Pi Cycle Indicator:', error);
-        // Fallback para dados mockados
-        const mockRatio = 0.85 + Math.random() * 0.3;
-        let score = mockRatio > 1.05 ? 95 : mockRatio > 0.98 ? 80 : mockRatio > 0.90 ? 60 : 25;
-        let description = mockRatio > 1.05 ? 'Sinal de topo ativo' : mockRatio > 0.98 ? 'Aproximando do topo' : mockRatio > 0.90 ? 'Zona de atenção' : 'Sem sinal de topo';
-        const trend = mockRatio > 0.95 ? 'up' : 'down';
-        
-        return {
-            value: `${(mockRatio * 100).toFixed(1)}%`,
-            score: score,
-            trend: trend,
-            description: description
-        };
+        return unavailableIndicator();
     }
 }
 
@@ -480,17 +463,7 @@ async function fetchPuellMultiple() {
         };
     } catch (error) {
         console.error('Erro ao buscar Puell Multiple:', error);
-        // Fallback para dados mockados
-        const mockPuell = 1.5 + (Math.random() - 0.5) * 3;
-        let score = mockPuell >= 6 ? 95 : mockPuell >= 4 ? 80 : mockPuell >= 2 ? 60 : mockPuell >= 1 ? 40 : mockPuell >= 0.5 ? 25 : 15;
-        const trend = mockPuell > 2 ? 'up' : 'down';
-        
-        return {
-            value: mockPuell.toFixed(2),
-            score: score,
-            trend: trend,
-            description: `Múltiplo de ${mockPuell.toFixed(2)} (mockado)`
-        };
+        return unavailableIndicator();
     }
 }
 
@@ -556,18 +529,7 @@ async function fetchNUPL() {
         };
     } catch (error) {
         console.error('Erro ao buscar NUPL:', error);
-        // Fallback para dados mockados
-        const mockNupl = Math.random() * 0.8;
-        let score = mockNupl > 0.75 ? 95 : mockNupl > 0.55 ? 80 : mockNupl > 0.25 ? 50 : mockNupl > 0 ? 25 : 10;
-        let description = mockNupl > 0.75 ? 'Euphoria - possível topo' : mockNupl > 0.55 ? 'Belief - zona de risco' : mockNupl > 0.25 ? 'Optimism - moderado' : mockNupl > 0 ? 'Hope - acumulação' : 'Fear - oportunidade';
-        const trend = mockNupl > 0.25 ? 'up' : 'down';
-        
-        return {
-            value: (mockNupl * 100).toFixed(1) + '%',
-            score: score,
-            trend: trend,
-            description: description
-        };
+        return unavailableIndicator();
     }
 }
 
@@ -711,19 +673,7 @@ async function fetchRainbowChart() {
         };
     } catch (error) {
         console.error('Erro ao buscar Rainbow Chart:', error);
-        // Fallback para dados mockados
-        const bands = ['Azul escuro', 'Azul', 'Verde', 'Amarelo', 'Laranja', 'Vermelho', 'Vermelho escuro'];
-        const randomBand = bands[Math.floor(Math.random() * bands.length)];
-        let score = randomBand === 'Vermelho escuro' ? 95 : randomBand === 'Vermelho' ? 85 : randomBand === 'Laranja' ? 70 : randomBand === 'Amarelo' ? 55 : randomBand === 'Verde' ? 40 : randomBand === 'Azul' ? 25 : 10;
-        let description = randomBand === 'Vermelho escuro' ? 'Máximo histórico - venda' : randomBand === 'Vermelho' ? 'Zona de venda' : randomBand === 'Laranja' ? 'Sobrevalorizado' : randomBand === 'Amarelo' ? 'Moderadamente alto' : randomBand === 'Verde' ? 'Valor justo' : randomBand === 'Azul' ? 'Subvalorizado' : 'Zona de compra';
-        const trend = score > 50 ? 'up' : 'down';
-        
-        return {
-            value: randomBand,
-            score: score,
-            trend: trend,
-            description: description
-        };
+        return unavailableIndicator();
     }
 }
 

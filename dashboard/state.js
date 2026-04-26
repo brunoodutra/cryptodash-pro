@@ -4,6 +4,11 @@ export let state = {
     investmentProfile: 'moderate',
     portfolio: { balance: 10000, positions: [], transactions: [] },
     alerts: [],
+    auth: {
+        user: null,
+        session: null,
+        redirectTo: null
+    },
     cache: {},
     // Chart state for LightweightCharts (now default)
     lightweightChart: null,
